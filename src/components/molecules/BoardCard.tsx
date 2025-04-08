@@ -1,15 +1,17 @@
 
-import { useState } from "react";
-import { useSetRecoilState } from "recoil";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Pencil, Trash2, Users, LogIn } from "lucide-react";
+import { useRecoilState } from "recoil";
 import { boardsState } from "@/recoil/atoms/boardsAtom";
-import { tasksState } from "@/recoil/atoms/tasksAtom";
-import { useNavigate } from "react-router-dom";
+import { ArrowRight, Edit, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-export type Column = {
+export type BoardColumn = {
   id: string;
   title: string;
   order: number;
@@ -20,7 +22,7 @@ export type Board = {
   title: string;
   description: string;
   theme?: string;
-  columns?: Column[];
+  columns?: BoardColumn[];
 };
 
 type BoardCardProps = {
@@ -28,104 +30,84 @@ type BoardCardProps = {
 };
 
 export const BoardCard = ({ board }: BoardCardProps) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const setBoards = useSetRecoilState(boardsState);
-  const setTasks = useSetRecoilState(tasksState);
-  const navigate = useNavigate();
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setBoards((prev) => prev.filter((b) => b.id !== board.id));
-    // Also delete all tasks associated with this board
-    setTasks((prev) => prev.filter((task) => task.boardId !== board.id));
+  const [boards, setBoards] = useRecoilState(boardsState);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  
+  const handleDelete = () => {
+    setBoards(boards.filter(b => b.id !== board.id));
+    toast.success("Board deleted successfully");
+    setIsDeleteDialogOpen(false);
   };
-
-  const handleClick = () => {
-    navigate(`/board/${board.id}`);
-  };
-
-  // Map theme to tailwind class
-  const getThemeClass = () => {
-    switch (board.theme) {
-      case 'blue':
-        return 'bg-blue-50 border-blue-200';
-      case 'green':
-        return 'bg-green-50 border-green-200';
-      case 'purple':
-        return 'bg-purple-50 border-purple-200';
+  
+  // Get theme-based classes
+  const getThemeClasses = () => {
+    switch(board.theme) {
+      case "blue":
+        return "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 dark:border-blue-800/30";
+      case "green":
+        return "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 dark:border-green-800/30";
+      case "purple":
+        return "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 dark:border-purple-800/30";
+      case "amber":
+        return "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 dark:border-amber-800/30";
+      case "rose":
+        return "bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-800/20 dark:border-rose-800/30";
       default:
-        return 'bg-white border-gray-100';
+        return "bg-white dark:bg-gray-800/80";
     }
   };
-
+  
   return (
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.25 }}
+      whileHover={{ y: -4 }}
       className="h-full"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick}
     >
-      <Card className={`cursor-pointer h-full ${getThemeClass()} transition-all duration-300`}>
+      <Card className={cn("h-full border transition-all shadow-sm hover:shadow-md", getThemeClasses())}>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex justify-between items-start">
-            {board.title}
-            {isHovered && (
-              <div className="flex space-x-1">
-                <Button
-                  variant="ghost" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/board/edit/${board.id}`);
-                  }}
-                  className="h-7 w-7 p-0 rounded-full"
-                >
-                  <Pencil size={14} />
-                  <span className="sr-only">Edit</span>
-                </Button>
-                <Button
-                  variant="ghost" 
-                  size="sm"
-                  onClick={handleDelete}
-                  className="h-7 w-7 p-0 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 size={14} />
-                  <span className="sr-only">Delete</span>
-                </Button>
-              </div>
-            )}
-          </CardTitle>
-          <CardDescription className="line-clamp-2">
-            {board.description}
-          </CardDescription>
+          <h3 className="text-lg font-semibold dark:text-white">{board.title}</h3>
         </CardHeader>
-        <CardContent className="text-sm pb-2">
-          <p className="text-muted-foreground mb-2">
-            {board.columns?.length || 3} columns
+        <CardContent className="pb-4">
+          <p className="text-muted-foreground text-sm dark:text-gray-300">
+            {board.description.length > 100 
+              ? `${board.description.substring(0, 100)}...` 
+              : board.description}
           </p>
         </CardContent>
-        <CardFooter className="pt-0 flex justify-between">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="text-xs"
-            onClick={(e) => {
-              e.stopPropagation();
-              // This would open user management in the future
-            }}
-          >
-            <Users size={14} className="mr-1" />
-            Share
-          </Button>
-          <Button 
-            size="sm" 
-            className="text-xs"
-            onClick={handleClick}
-          >
-            <LogIn size={14} className="mr-1" />
-            Open
+        <CardFooter className="flex justify-between border-t pt-3 dark:border-gray-700">
+          <div className="flex space-x-2">
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Trash2 size={16} className="text-red-500" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Board</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete "{board.title}"? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+                  <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+              <Link to={`/board/edit/${board.id}`}>
+                <Edit size={16} className="text-blue-500" />
+              </Link>
+            </Button>
+          </div>
+          <Button variant="ghost" size="sm" className="h-8 group" asChild>
+            <Link to={`/board/${board.id}`}>
+              View Board
+              <ArrowRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" />
+            </Link>
           </Button>
         </CardFooter>
       </Card>

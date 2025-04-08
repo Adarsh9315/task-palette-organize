@@ -16,7 +16,7 @@ export const BoardFormTemplate = () => {
   const isEditMode = !!boardId;
   
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-gray-900">
       <AppHeader />
       <main className="flex-1 p-4 md:p-6 max-w-3xl w-full mx-auto">
         <div className="mb-6">
@@ -27,12 +27,13 @@ export const BoardFormTemplate = () => {
             </Link>
           </Button>
           
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold dark:text-white">
             {isEditMode ? "Edit Board" : "Create New Board"}
           </h1>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4 dark:text-white">Board Details</h2>
           <BoardForm existingBoard={board} />
         </div>
       </main>

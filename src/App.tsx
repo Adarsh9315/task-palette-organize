@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { RecoilRoot } from "recoil";
+import { RecoilRoot, useRecoilValue } from "recoil";
 import Index from "./pages/Index";
 import BoardDetail from "./pages/BoardDetail";
 import BoardForm from "./pages/BoardForm";
@@ -12,7 +12,6 @@ import About from "./pages/About";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
-import { useRecoilValue } from "recoil";
 import { themeState } from "./recoil/atoms/themeAtom";
 import { AppLayout } from "./components/templates/AppLayout";
 
@@ -23,26 +22,36 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const theme = useRecoilValue(themeState);
   
   useEffect(() => {
-    // Apply theme mode
+    // Apply theme mode with transition
+    const root = document.documentElement;
+    
     if (theme.useSystemTheme) {
       const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.classList.toggle("dark", isDark);
+      root.classList.toggle("dark", isDark);
       
       // Listen for system theme changes
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
       const handleChange = (e: MediaQueryListEvent) => {
-        document.documentElement.classList.toggle("dark", e.matches);
+        root.classList.toggle("dark", e.matches);
       };
       
       mediaQuery.addEventListener("change", handleChange);
       return () => mediaQuery.removeEventListener("change", handleChange);
     } else {
-      document.documentElement.classList.toggle("dark", theme.mode === "dark");
+      // Add transition class before changing theme
+      root.classList.add('transition-colors');
+      root.classList.add('duration-300');
+      
+      // Apply theme
+      root.classList.toggle("dark", theme.mode === "dark");
+      
+      // Store the theme preference in localStorage
+      localStorage.setItem("theme", JSON.stringify(theme));
     }
     
     // Apply color scheme
     if (theme.colorScheme) {
-      document.documentElement.dataset.colorScheme = theme.colorScheme;
+      root.dataset.colorScheme = theme.colorScheme;
     }
   }, [theme]);
   
@@ -54,7 +63,7 @@ const AppContent = () => {
     <ThemeProvider>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        <Sonner position="bottom-right" />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<AppLayout />}>

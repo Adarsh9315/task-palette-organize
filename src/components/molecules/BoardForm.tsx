@@ -12,6 +12,8 @@ import { Board } from "@/components/molecules/BoardCard";
 import { v4 as uuidv4 } from "@/lib/uuid";
 import { useNavigate } from "react-router-dom";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 type BoardFormProps = {
   existingBoard?: Board;
@@ -24,6 +26,15 @@ const boardFormSchema = z.object({
 });
 
 type BoardFormValues = z.infer<typeof boardFormSchema>;
+
+const boardThemes = [
+  { value: "default", label: "Default", bgClass: "bg-slate-100 border border-slate-200" },
+  { value: "blue", label: "Blue", bgClass: "bg-blue-100 border border-blue-200" },
+  { value: "green", label: "Green", bgClass: "bg-green-100 border border-green-200" },
+  { value: "purple", label: "Purple", bgClass: "bg-purple-100 border border-purple-200" },
+  { value: "amber", label: "Amber", bgClass: "bg-amber-100 border border-amber-200" },
+  { value: "rose", label: "Rose", bgClass: "bg-rose-100 border border-rose-200" },
+];
 
 export const BoardForm = ({ existingBoard }: BoardFormProps) => {
   const [boards, setBoards] = useRecoilState(boardsState);
@@ -48,6 +59,7 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
           ? { ...board, ...values } 
           : board
       ));
+      toast.success("Board updated successfully!");
     } else {
       // Create new board - ensure title and description are provided
       const newBoard: Board = {
@@ -62,6 +74,7 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
         ]
       };
       setBoards([...boards, newBoard]);
+      toast.success("Board created successfully!");
     }
     
     navigate("/");
@@ -69,94 +82,105 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
   
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Board Title</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter board title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base dark:text-white">Board Title</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Enter board title" 
+                    className="text-base dark:bg-gray-700 dark:text-white dark:border-gray-600" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base dark:text-white">Description</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Enter board description" 
+                    className="min-h-[100px] text-base dark:bg-gray-700 dark:text-white dark:border-gray-600" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </motion.div>
         
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Enter board description" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <FormField
+            control={form.control}
+            name="theme"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base dark:text-white">Board Theme</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-wrap gap-4"
+                  >
+                    {boardThemes.map(theme => (
+                      <FormItem key={theme.value} className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value={theme.value} />
+                        </FormControl>
+                        <div className={`w-10 h-10 rounded ${theme.bgClass} dark:opacity-80`}></div>
+                        <FormLabel className="font-normal dark:text-white">{theme.label}</FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </motion.div>
         
-        <FormField
-          control={form.control}
-          name="theme"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Board Theme</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex flex-wrap gap-4"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="default" />
-                    </FormControl>
-                    <div className="w-10 h-10 rounded bg-slate-100 border border-slate-200"></div>
-                    <FormLabel className="font-normal">Default</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="blue" />
-                    </FormControl>
-                    <div className="w-10 h-10 rounded bg-blue-100 border border-blue-200"></div>
-                    <FormLabel className="font-normal">Blue</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="green" />
-                    </FormControl>
-                    <div className="w-10 h-10 rounded bg-green-100 border border-green-200"></div>
-                    <FormLabel className="font-normal">Green</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="purple" />
-                    </FormControl>
-                    <div className="w-10 h-10 rounded bg-purple-100 border border-purple-200"></div>
-                    <FormLabel className="font-normal">Purple</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex justify-end space-x-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="flex justify-end space-x-2"
+        >
           <Button 
             type="button" 
             variant="outline" 
             onClick={() => navigate("/")}
+            className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
           >
             Cancel
           </Button>
-          <Button type="submit" className="animate-pulse-once">
+          <Button 
+            type="submit" 
+            className="animate-pulse-once bg-primary hover:bg-primary/90"
+          >
             {existingBoard ? "Update Board" : "Create Board"}
           </Button>
-        </div>
+        </motion.div>
       </form>
     </Form>
   );
