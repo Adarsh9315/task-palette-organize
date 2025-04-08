@@ -7,7 +7,7 @@ import { boardsState } from "@/recoil/atoms/boardsAtom";
 import { 
   ChevronLeft, 
   ChevronRight, 
-  LayoutBoard, 
+  Layout, 
   Plus, 
   Settings, 
   Search,
@@ -48,12 +48,12 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
       )}>
         {!collapsed && (
           <Link to="/" className="flex items-center space-x-2">
-            <LayoutBoard size={24} className="text-primary" />
+            <Layout size={24} className="text-primary" />
             <span className="font-bold text-lg">TaskPalette</span>
           </Link>
         )}
         {collapsed && (
-          <LayoutBoard size={24} className="text-primary" />
+          <Layout size={24} className="text-primary" />
         )}
         <Button 
           variant="ghost" 
@@ -126,7 +126,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
                         collapsed ? "justify-center w-10 h-10" : "w-full"
                       )}
                     >
-                      <LayoutBoard size={collapsed ? 20 : 16} className={cn(!collapsed && "mr-2")} />
+                      <Layout size={collapsed ? 20 : 16} className={cn(!collapsed && "mr-2")} />
                       {!collapsed && (
                         <span className="truncate">{board.title}</span>
                       )}
