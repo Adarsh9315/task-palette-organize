@@ -11,6 +11,7 @@ import { boardsState } from "@/recoil/atoms/boardsAtom";
 import { Board } from "@/components/molecules/BoardCard";
 import { v4 as uuidv4 } from "@/lib/uuid";
 import { useNavigate } from "react-router-dom";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 type BoardFormProps = {
   existingBoard?: Board;
@@ -19,6 +20,7 @@ type BoardFormProps = {
 const boardFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
+  theme: z.string().default("default"),
 });
 
 type BoardFormValues = z.infer<typeof boardFormSchema>;
@@ -30,6 +32,7 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
   const defaultValues: BoardFormValues = {
     title: existingBoard?.title || "",
     description: existingBoard?.description || "",
+    theme: existingBoard?.theme || "default",
   };
   
   const form = useForm<BoardFormValues>({
@@ -51,6 +54,12 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
         id: uuidv4(),
         title: values.title,
         description: values.description,
+        theme: values.theme,
+        columns: [
+          { id: uuidv4(), title: "To Do", order: 0 },
+          { id: uuidv4(), title: "In Progress", order: 1 },
+          { id: uuidv4(), title: "Done", order: 2 }
+        ]
       };
       setBoards([...boards, newBoard]);
     }
@@ -89,6 +98,53 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
           )}
         />
         
+        <FormField
+          control={form.control}
+          name="theme"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Board Theme</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-wrap gap-4"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="default" />
+                    </FormControl>
+                    <div className="w-10 h-10 rounded bg-slate-100 border border-slate-200"></div>
+                    <FormLabel className="font-normal">Default</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="blue" />
+                    </FormControl>
+                    <div className="w-10 h-10 rounded bg-blue-100 border border-blue-200"></div>
+                    <FormLabel className="font-normal">Blue</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="green" />
+                    </FormControl>
+                    <div className="w-10 h-10 rounded bg-green-100 border border-green-200"></div>
+                    <FormLabel className="font-normal">Green</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="purple" />
+                    </FormControl>
+                    <div className="w-10 h-10 rounded bg-purple-100 border border-purple-200"></div>
+                    <FormLabel className="font-normal">Purple</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <div className="flex justify-end space-x-2">
           <Button 
             type="button" 
@@ -97,7 +153,7 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
           >
             Cancel
           </Button>
-          <Button type="submit">
+          <Button type="submit" className="animate-pulse-once">
             {existingBoard ? "Update Board" : "Create Board"}
           </Button>
         </div>

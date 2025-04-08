@@ -9,13 +9,48 @@ import Index from "./pages/Index";
 import BoardDetail from "./pages/BoardDetail";
 import BoardForm from "./pages/BoardForm";
 import About from "./pages/About";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import { useEffect } from "react";
+import { useRecoilValue } from "recoil";
+import { themeState } from "./recoil/atoms/themeAtom";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <RecoilRoot>
-    <QueryClientProvider client={queryClient}>
+// Theme Provider component to apply theme changes
+const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const theme = useRecoilValue(themeState);
+  
+  useEffect(() => {
+    // Apply theme mode
+    if (theme.useSystemTheme) {
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.classList.toggle("dark", isDark);
+      
+      // Listen for system theme changes
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = (e: MediaQueryListEvent) => {
+        document.documentElement.classList.toggle("dark", e.matches);
+      };
+      
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    } else {
+      document.documentElement.classList.toggle("dark", theme.mode === "dark");
+    }
+    
+    // Apply color scheme
+    if (theme.colorScheme) {
+      document.documentElement.dataset.colorScheme = theme.colorScheme;
+    }
+  }, [theme]);
+  
+  return <>{children}</>;
+};
+
+const AppContent = () => {
+  return (
+    <ThemeProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -25,11 +60,20 @@ const App = () => (
             <Route path="/board/:boardId" element={<BoardDetail />} />
             <Route path="/board/new" element={<BoardForm />} />
             <Route path="/board/edit/:boardId" element={<BoardForm />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+    </ThemeProvider>
+  );
+};
+
+const App = () => (
+  <RecoilRoot>
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
     </QueryClientProvider>
   </RecoilRoot>
 );
