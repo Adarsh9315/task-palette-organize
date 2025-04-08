@@ -46,10 +46,11 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
           : board
       ));
     } else {
-      // Create new board
+      // Create new board - ensure title and description are provided
       const newBoard: Board = {
         id: uuidv4(),
-        ...values,
+        title: values.title,
+        description: values.description,
       };
       setBoards([...boards, newBoard]);
     }

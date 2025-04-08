@@ -49,11 +49,13 @@ export const TaskForm = ({ boardId, existingTask, onSuccess }: TaskFormProps) =>
           : task
       ));
     } else {
-      // Create new task
+      // Create new task - ensure required properties are provided
       const newTask: Task = {
         id: uuidv4(),
         boardId,
-        ...values,
+        title: values.title,
+        description: values.description,
+        status: values.status,
       };
       setTasks([...tasks, newTask]);
     }
