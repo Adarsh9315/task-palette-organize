@@ -7,7 +7,11 @@ import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-export const AppHeader = () => {
+interface AppHeaderProps {
+  children?: React.ReactNode;
+}
+
+export const AppHeader = ({ children }: AppHeaderProps) => {
   return (
     <motion.header 
       initial={{ opacity: 0, y: -10 }}
@@ -15,7 +19,8 @@ export const AppHeader = () => {
       transition={{ duration: 0.3 }}
       className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card px-4 dark:bg-gray-900 dark:border-gray-800"
     >
-      <div className="flex-1 md:flex-initial">
+      <div className="flex-1 md:flex-initial flex items-center gap-2">
+        {children}
         <Link to="/" className="text-lg font-bold">
           TaskPalette
         </Link>
