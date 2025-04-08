@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 import { useRecoilValue } from "recoil";
 import { themeState } from "./recoil/atoms/themeAtom";
+import { AppLayout } from "./components/templates/AppLayout";
 
 const queryClient = new QueryClient();
 
@@ -56,12 +57,14 @@ const AppContent = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/board/:boardId" element={<BoardDetail />} />
-            <Route path="/board/new" element={<BoardForm />} />
-            <Route path="/board/edit/:boardId" element={<BoardForm />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/about" element={<About />} />
+            <Route path="/" element={<AppLayout />}>
+              <Route index element={<Index />} />
+              <Route path="/board/:boardId" element={<BoardDetail />} />
+              <Route path="/board/new" element={<BoardForm />} />
+              <Route path="/board/edit/:boardId" element={<BoardForm />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/about" element={<About />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

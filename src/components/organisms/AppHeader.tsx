@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckSquare, Info, Menu, X, Settings, User, LogOut, Sun, Moon } from "lucide-react";
+import { CheckSquare, Info, X, Settings, User, LogOut, Sun, Moon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
@@ -15,7 +15,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { themeState } from "@/recoil/atoms/themeAtom";
 import { useRecoilState } from "recoil";
 
-export const AppHeader = () => {
+type AppHeaderProps = {
+  children?: React.ReactNode;
+};
+
+export const AppHeader = ({ children }: AppHeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [theme, setTheme] = useRecoilState(themeState);
   
@@ -30,10 +34,13 @@ export const AppHeader = () => {
   return (
     <header className="bg-card border-b border-slate-200 dark:border-slate-700 py-4 px-4 md:px-6 shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
-          <CheckSquare size={24} className="text-primary" />
-          <span className="font-bold text-lg">TaskPalette</span>
-        </Link>
+        <div className="flex items-center">
+          {children}
+          <Link to="/" className="flex items-center space-x-2">
+            <CheckSquare size={24} className="text-primary" />
+            <span className="font-bold text-lg">TaskPalette</span>
+          </Link>
+        </div>
         
         <nav className="hidden md:flex items-center space-x-1">
           <Button variant="ghost" asChild>
@@ -98,7 +105,7 @@ export const AppHeader = () => {
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon">
-              <Menu size={20} />
+              <X size={20} />
               <span className="sr-only">Menu</span>
             </Button>
           </SheetTrigger>
