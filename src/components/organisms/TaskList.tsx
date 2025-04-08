@@ -19,6 +19,7 @@ export const TaskList = ({ boardId }: TaskListProps) => {
     setCreateModal({
       isOpen: true,
       boardId,
+      initialStatus: "todo", // Add the initialStatus property
     });
   };
 

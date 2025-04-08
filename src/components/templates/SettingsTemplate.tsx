@@ -1,75 +1,120 @@
 
-import { AppHeader } from "@/components/organisms/AppHeader";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Sun, Moon, User, Bell, Lock } from "lucide-react";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
 import { useState } from "react";
+import { AppHeader } from "@/components/organisms/AppHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfileForm } from "@/components/molecules/UserProfileForm";
-import { ThemeSettings } from "@/components/molecules/ThemeSettings";
 import { NotificationSettings } from "@/components/molecules/NotificationSettings";
 import { SecuritySettings } from "@/components/molecules/SecuritySettings";
+import { ThemeSettings } from "@/components/molecules/ThemeSettings";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const SettingsTemplate = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-background">
       <AppHeader />
-      <main className="flex-1 p-4 md:p-6 max-w-5xl w-full mx-auto">
-        <div className="flex items-center mb-6">
-          <Button variant="ghost" size="sm" className="mr-4" onClick={() => navigate(-1)}>
-            <ArrowLeft size={16} className="mr-1" />
-            Back
-          </Button>
+      <main className="flex-1 p-4 md:p-6 max-w-7xl w-full mx-auto">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold">Settings</h1>
+          <p className="text-muted-foreground">Manage your account settings and preferences.</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2 md:grid-cols-4">
-              <TabsTrigger value="profile" className="flex items-center gap-2">
-                <User size={16} />
-                <span className="hidden md:inline">Profile</span>
-              </TabsTrigger>
-              <TabsTrigger value="theme" className="flex items-center gap-2">
-                <Sun size={16} />
-                <span className="hidden md:inline">Theme</span>
-              </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell size={16} />
-                <span className="hidden md:inline">Notifications</span>
-              </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
-                <Lock size={16} />
-                <span className="hidden md:inline">Security</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <div className="mt-6">
-              <TabsContent value="profile" className="space-y-4">
-                <UserProfileForm />
+        <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
+          <Card className="h-fit">
+            <CardHeader>
+              <CardTitle>Settings</CardTitle>
+              <CardDescription>Manage your preferences.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Tabs 
+                defaultValue="profile" 
+                orientation="vertical" 
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="flex flex-col h-auto items-stretch bg-transparent space-y-1">
+                  <TabsTrigger 
+                    value="profile" 
+                    className="justify-start px-4 py-2 text-left"
+                  >
+                    Profile
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="theme" 
+                    className="justify-start px-4 py-2 text-left"
+                  >
+                    Theme
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="notifications" 
+                    className="justify-start px-4 py-2 text-left"
+                  >
+                    Notifications
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="security" 
+                    className="justify-start px-4 py-2 text-left"
+                  >
+                    Security
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <Tabs value={activeTab} className="w-full">
+              <TabsContent value="profile" className="m-0">
+                <CardHeader>
+                  <CardTitle>Profile</CardTitle>
+                  <CardDescription>
+                    Update your profile information.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <UserProfileForm />
+                </CardContent>
               </TabsContent>
               
-              <TabsContent value="theme" className="space-y-4">
-                <ThemeSettings />
+              <TabsContent value="theme" className="m-0">
+                <CardHeader>
+                  <CardTitle>Theme</CardTitle>
+                  <CardDescription>
+                    Customize your theme preferences.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ThemeSettings />
+                </CardContent>
               </TabsContent>
               
-              <TabsContent value="notifications" className="space-y-4">
-                <NotificationSettings />
+              <TabsContent value="notifications" className="m-0">
+                <CardHeader>
+                  <CardTitle>Notifications</CardTitle>
+                  <CardDescription>
+                    Configure how you receive notifications.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <NotificationSettings />
+                </CardContent>
               </TabsContent>
               
-              <TabsContent value="security" className="space-y-4">
-                <SecuritySettings />
+              <TabsContent value="security" className="m-0">
+                <CardHeader>
+                  <CardTitle>Security</CardTitle>
+                  <CardDescription>
+                    Update your security settings.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SecuritySettings />
+                </CardContent>
               </TabsContent>
-            </div>
-          </Tabs>
+            </Tabs>
+          </Card>
         </div>
       </main>
     </div>

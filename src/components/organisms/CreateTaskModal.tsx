@@ -11,6 +11,7 @@ export const CreateTaskModal = () => {
     setModalState({
       isOpen: false,
       boardId: "",
+      initialStatus: undefined,
     });
   };
   
