@@ -7,12 +7,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useRecoilState } from "recoil";
-import { themeState } from "@/recoil/atoms/themeAtom";
+import { themeState, ColorScheme, ThemeMode } from "@/recoil/atoms/themeAtom";
 import { toast } from "sonner";
 
 export function ThemeSettings() {
   const [theme, setTheme] = useRecoilState(themeState);
-  const [colorScheme, setColorScheme] = useState(theme.colorScheme || "blue");
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(theme.colorScheme || "blue");
   const [useSystemTheme, setUseSystemTheme] = useState(theme.useSystemTheme || false);
   
   // Update the theme in localStorage and document when it changes
@@ -35,7 +35,7 @@ export function ThemeSettings() {
     }));
   }, [theme, colorScheme, useSystemTheme]);
   
-  const updateTheme = (mode: "light" | "dark") => {
+  const updateTheme = (mode: ThemeMode) => {
     setTheme({
       ...theme,
       mode,
@@ -59,10 +59,12 @@ export function ThemeSettings() {
   };
   
   const updateColorScheme = (newColorScheme: string) => {
-    setColorScheme(newColorScheme);
+    // Cast the newColorScheme to ColorScheme type
+    const typedColorScheme = newColorScheme as ColorScheme;
+    setColorScheme(typedColorScheme);
     setTheme({
       ...theme,
-      colorScheme: newColorScheme
+      colorScheme: typedColorScheme
     });
     toast.success(`Color scheme updated to ${newColorScheme}`);
   };
@@ -146,9 +148,9 @@ export function ThemeSettings() {
             </div>
             
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="orange" id="orange" />
-              <div className="w-8 h-8 rounded-full bg-orange-500"></div>
-              <Label htmlFor="orange">Orange</Label>
+              <RadioGroupItem value="amber" id="amber" />
+              <div className="w-8 h-8 rounded-full bg-amber-500"></div>
+              <Label htmlFor="amber">Amber</Label>
             </div>
           </RadioGroup>
         </div>

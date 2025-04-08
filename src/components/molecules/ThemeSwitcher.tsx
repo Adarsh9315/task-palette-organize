@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useRecoilState } from "recoil";
-import { themeState } from "@/recoil/atoms/themeAtom";
+import { themeState, ThemeMode } from "@/recoil/atoms/themeAtom";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { motion } from "framer-motion";
 
@@ -20,7 +20,7 @@ export const ThemeSwitcher = () => {
   }, []);
 
   const toggleTheme = () => {
-    const newMode = theme.mode === "dark" ? "light" : "dark";
+    const newMode: ThemeMode = theme.mode === "dark" ? "light" : "dark";
     const newTheme = { ...theme, mode: newMode, useSystemTheme: false };
     setTheme(newTheme);
     localStorage.setItem("theme", JSON.stringify(newTheme));
@@ -28,9 +28,10 @@ export const ThemeSwitcher = () => {
 
   const toggleSystemTheme = () => {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const newMode: ThemeMode = prefersDark ? "dark" : "light";
     const newTheme = { 
       ...theme, 
-      mode: prefersDark ? "dark" : "light",
+      mode: newMode,
       useSystemTheme: !theme.useSystemTheme 
     };
     setTheme(newTheme);
