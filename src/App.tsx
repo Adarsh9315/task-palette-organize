@@ -55,6 +55,11 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [theme]);
   
+  // Force dark mode on initial load for the design
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+  
   return <>{children}</>;
 };
 

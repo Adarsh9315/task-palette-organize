@@ -1,7 +1,7 @@
 
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil, Plus, Settings, UserPlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { boardByIdSelector } from "@/recoil/selectors/boardSelectors";
@@ -22,7 +22,6 @@ export const BoardTemplate = () => {
   const [tasks, setTasks] = useRecoilState(tasksState);
   const board = useRecoilValue(boardByIdSelector(boardId || ""));
   const boardTasks = useRecoilValue(filteredTasksSelector(boardId || ""));
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const setCreateModal = useRecoilState(createTaskModalState)[1];
   
   if (!board || !boardId) {
@@ -35,24 +34,6 @@ export const BoardTemplate = () => {
       </div>
     );
   }
-
-  // Get theme class based on board theme
-  const getThemeClass = () => {
-    switch (board.theme) {
-      case 'blue':
-        return 'bg-blue-50 dark:bg-blue-900/20';
-      case 'green':
-        return 'bg-green-50 dark:bg-green-900/20';
-      case 'purple':
-        return 'bg-purple-50 dark:bg-purple-900/20';
-      case 'amber':
-        return 'bg-amber-50 dark:bg-amber-900/20';
-      case 'rose':
-        return 'bg-rose-50 dark:bg-rose-900/20';
-      default:
-        return 'dark:bg-gray-900';
-    }
-  };
   
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -92,64 +73,29 @@ export const BoardTemplate = () => {
   };
   
   const columns = [
-    { id: "todo", title: "To Do" },
-    { id: "in-progress", title: "In Progress" },
-    { id: "done", title: "Done" }
+    { id: "todo", title: "TODO", color: "bg-[#00A3FF]", textColor: "text-[#00A3FF]" },
+    { id: "in-progress", title: "DOING", color: "bg-primary", textColor: "text-primary" },
+    { id: "done", title: "DONE", color: "bg-[#00CA92]", textColor: "text-[#00CA92]" }
   ];
   
+  // Get number of tasks per status
+  const todoCount = boardTasks.filter(task => task.status === "todo").length;
+  const inProgressCount = boardTasks.filter(task => task.status === "in-progress").length;
+  const doneCount = boardTasks.filter(task => task.status === "done").length;
+  
+  const counts = {
+    "todo": todoCount,
+    "in-progress": inProgressCount,
+    "done": doneCount
+  };
+  
   return (
-    <div className={cn("min-h-full p-4", getThemeClass())}>
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="mb-6"
-      >
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-          <div>
-            <h1 className="text-2xl font-bold dark:text-white">{board.title}</h1>
-            <p className="text-slate-500 dark:text-slate-300">{board.description}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="dark:bg-gray-800 dark:border-gray-700"
-            >
-              <UserPlus size={14} className="mr-2" />
-              Share
-            </Button>
-            <Button variant="outline" size="sm" asChild className="dark:bg-gray-800 dark:border-gray-700">
-              <Link to={`/board/edit/${boardId}`}>
-                <Pencil size={14} className="mr-2" />
-                Edit Board
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild className="dark:bg-gray-800 dark:border-gray-700">
-              <Link to={`/settings`}>
-                <Settings size={14} className="mr-2" />
-                Settings
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-        
+    <div className="min-h-full p-4 bg-[#1A1F2C]">
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 overflow-x-auto">
           {columns.map((column, idx) => {
             const columnTasks = boardTasks.filter(task => task.status === column.id);
             
-            let columnStyle = "";
-            if (column.id === 'todo') {
-              columnStyle = 'bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-            } else if (column.id === 'in-progress') {
-              columnStyle = 'bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-            } else {
-              columnStyle = 'bg-green-100/60 text-green-700 dark:bg-green-900/30 dark:text-green-300';
-            }
-              
             return (
               <motion.div 
                 key={column.id}
@@ -158,25 +104,10 @@ export const BoardTemplate = () => {
                 transition={{ duration: 0.3, delay: idx * 0.1 }}
                 className="flex flex-col h-full"
               >
-                <div className={cn(
-                  "px-4 py-2 rounded-md font-medium text-sm mb-4 flex justify-between items-center",
-                  columnStyle
-                )}>
-                  <span className="flex items-center">
-                    {column.title} 
-                    <span className="ml-2 bg-white/50 dark:bg-gray-800/50 px-2 py-0.5 rounded-full text-xs">
-                      {columnTasks.length}
-                    </span>
-                  </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 w-7 p-0 ml-2 rounded-full"
-                    onClick={() => openCreateTaskModal(column.id)}
-                  >
-                    <Plus size={14} />
-                    <span className="sr-only">Add Task</span>
-                  </Button>
+                <div className="flex items-center mb-6">
+                  <div className={`h-3 w-3 rounded-full ${column.color} mr-3`}></div>
+                  <span className="font-bold text-gray-400 tracking-wider text-sm">{column.title}</span>
+                  <span className="ml-2 text-gray-400 text-sm">({counts[column.id as keyof typeof counts]})</span>
                 </div>
                   
                 <Droppable droppableId={column.id}>
@@ -185,8 +116,8 @@ export const BoardTemplate = () => {
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={cn(
-                        "flex-1 min-h-[200px] p-2 rounded-md transition-colors duration-200",
-                        snapshot.isDraggingOver ? 'bg-slate-100 dark:bg-gray-800/50' : ''
+                        "flex-1 min-h-[200px] transition-colors duration-200",
+                        snapshot.isDraggingOver ? 'bg-gray-800/20' : ''
                       )}
                     >
                       {columnTasks.length > 0 ? (
@@ -199,7 +130,7 @@ export const BoardTemplate = () => {
                                 {...provided.dragHandleProps}
                                 style={{
                                   ...provided.draggableProps.style,
-                                  marginBottom: '8px',
+                                  marginBottom: '20px',
                                 }}
                               >
                                 <TaskCard task={task} />
@@ -208,8 +139,8 @@ export const BoardTemplate = () => {
                           </Draggable>
                         ))
                       ) : (
-                        <div className="bg-white/50 dark:bg-gray-800/50 rounded-md p-4 text-sm text-slate-500 dark:text-slate-400 text-center border border-dashed border-slate-200 dark:border-gray-700">
-                          Drop tasks here
+                        <div className="rounded-md p-4 text-sm text-gray-400 border border-dashed border-gray-700 h-24 flex items-center justify-center">
+                          No tasks in this column
                         </div>
                       )}
                       {provided.placeholder}
@@ -221,6 +152,16 @@ export const BoardTemplate = () => {
           })}
         </div>
       </DragDropContext>
+      
+      <div className="fixed bottom-6 right-6">
+        <Button 
+          onClick={() => openCreateTaskModal("todo")} 
+          className="rounded-full bg-primary hover:bg-primary/90"
+        >
+          <Plus className="mr-2" />
+          New Column
+        </Button>
+      </div>
         
       <CreateTaskModal />
       <EditTaskModal />
