@@ -152,6 +152,18 @@ export async function updateTask(id: string, task: Partial<Task>): Promise<Task>
 
 export async function deleteTask(id: string): Promise<void> {
   try {
+    // First delete any subtasks associated with the task
+    const { error: subtasksError } = await supabase
+      .from('subtasks')
+      .delete()
+      .eq('task_id', id);
+
+    if (subtasksError) {
+      console.error('Error deleting subtasks:', subtasksError);
+      throw new Error(subtasksError.message);
+    }
+    
+    // Then delete the task itself
     const { error } = await supabase
       .from('tasks')
       .delete()

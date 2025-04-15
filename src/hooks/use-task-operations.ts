@@ -1,9 +1,8 @@
-
 import { useRecoilState } from "recoil";
 import { tasksState } from "@/recoil/atoms/tasksAtom";
 import { columnsState } from "@/recoil/atoms/columnsAtom";
 import { createTaskModalState } from "@/recoil/atoms/modalAtom";
-import { updateTask } from "@/services/taskService";
+import { updateTask, deleteTask as deleteTaskService } from "@/services/taskService";
 import { createColumn, deleteColumn as deleteColumnService, updateColumn as updateColumnService } from "@/services/columnService";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -136,6 +135,22 @@ export const useTaskOperations = (boardId: string | undefined) => {
     }
   };
   
+  // New function to delete a task
+  const deleteTask = async (taskId: string) => {
+    try {
+      // Delete the task in Supabase
+      await deleteTaskService(taskId);
+      
+      // Update local state
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+      
+      toast.success("Task deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting task:", error);
+      toast.error(error.message || "Failed to delete task");
+    }
+  };
+  
   // Get number of tasks per status
   const getTaskCountByStatus = (status: string) => {
     return tasks.filter(task => task.status === status).length;
@@ -147,6 +162,7 @@ export const useTaskOperations = (boardId: string | undefined) => {
     openAddColumnModal,
     openEditColumnModal,
     deleteColumn,
+    deleteTask,
     getTaskCountByStatus,
     columnModalOpen,
     setColumnModalOpen,
