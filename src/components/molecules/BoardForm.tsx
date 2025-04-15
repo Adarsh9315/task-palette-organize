@@ -9,11 +9,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRecoilState } from "recoil";
 import { boardsState } from "@/recoil/atoms/boardsAtom";
 import { Board } from "@/components/molecules/BoardCard";
-import { v4 as uuidv4 } from "@/lib/uuid";
 import { useNavigate } from "react-router-dom";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { createBoard, updateBoard } from "@/services/boardService";
+import { useState } from "react";
+import { Loader } from "lucide-react";
 
 type BoardFormProps = {
   existingBoard?: Board;
@@ -39,6 +41,7 @@ const boardThemes = [
 export const BoardForm = ({ existingBoard }: BoardFormProps) => {
   const [boards, setBoards] = useRecoilState(boardsState);
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const defaultValues: BoardFormValues = {
     title: existingBoard?.title || "",
@@ -51,33 +54,39 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
     defaultValues,
   });
   
-  const onSubmit = (values: BoardFormValues) => {
-    if (existingBoard) {
-      // Update existing board
-      setBoards(boards.map((board) => 
-        board.id === existingBoard.id 
-          ? { ...board, ...values } 
-          : board
-      ));
-      toast.success("Board updated successfully!");
-    } else {
-      // Create new board - ensure title and description are provided
-      const newBoard: Board = {
-        id: uuidv4(),
-        title: values.title,
-        description: values.description,
-        theme: values.theme,
-        columns: [
-          { id: uuidv4(), title: "To Do", order: 0 },
-          { id: uuidv4(), title: "In Progress", order: 1 },
-          { id: uuidv4(), title: "Done", order: 2 }
-        ]
-      };
-      setBoards([...boards, newBoard]);
-      toast.success("Board created successfully!");
+  const onSubmit = async (values: BoardFormValues) => {
+    try {
+      setIsSubmitting(true);
+      
+      if (existingBoard) {
+        // Update existing board
+        const updatedBoard = await updateBoard(existingBoard.id, values);
+        
+        // Update Recoil state
+        setBoards(boards.map((board) => 
+          board.id === existingBoard.id 
+            ? updatedBoard
+            : board
+        ));
+        
+        toast.success("Board updated successfully!");
+      } else {
+        // Create new board
+        const newBoard = await createBoard(values);
+        
+        // Update Recoil state
+        setBoards([...boards, newBoard]);
+        
+        toast.success("Board created successfully!");
+      }
+      
+      navigate("/");
+    } catch (error: any) {
+      console.error("Error saving board:", error);
+      toast.error(error.message || "Failed to save board");
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    navigate("/");
   };
   
   return (
@@ -171,14 +180,23 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
             variant="outline" 
             onClick={() => navigate("/")}
             className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button 
             type="submit" 
-            className="animate-pulse-once bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90"
+            disabled={isSubmitting}
           >
-            {existingBoard ? "Update Board" : "Create Board"}
+            {isSubmitting ? (
+              <>
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                {existingBoard ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              existingBoard ? "Update Board" : "Create Board"
+            )}
           </Button>
         </motion.div>
       </form>

@@ -1,15 +1,14 @@
 
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, MoreVertical } from "lucide-react";
+import { Plus, Settings, MoreVertical, Loader } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { boardByIdSelector } from "@/recoil/selectors/boardSelectors";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { tasksState } from "@/recoil/atoms/tasksAtom";
-import { TaskCard } from "@/components/molecules/TaskCard";
-import { useState } from "react";
-import { filteredTasksSelector } from "@/recoil/selectors/taskSelectors";
+import { TaskCard, Task, TaskStatus } from "@/components/molecules/TaskCard";
+import { useState, useEffect } from "react";
 import { createTaskModalState } from "@/recoil/atoms/modalAtom";
 import { CreateTaskModal } from "@/components/organisms/CreateTaskModal";
 import { EditTaskModal } from "@/components/organisms/EditTaskModal";
@@ -18,9 +17,13 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { columnsState, Column } from "@/recoil/atoms/columnsAtom";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { TaskStatus } from "@/components/molecules/TaskCard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRecoilValue } from "recoil";
+import { getBoardById } from "@/services/boardService";
+import { getTasks, updateTask } from "@/services/taskService";
+import { getColumns } from "@/services/columnService";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,20 +35,71 @@ export const BoardTemplate = () => {
   const { boardId } = useParams<{ boardId: string }>();
   const navigate = useNavigate();
   const [tasks, setTasks] = useRecoilState(tasksState);
-  const board = useRecoilValue(boardByIdSelector(boardId || ""));
-  const boardTasks = useRecoilValue(filteredTasksSelector(boardId || ""));
   const [createModal, setCreateModal] = useRecoilState(createTaskModalState);
   const [columns, setColumns] = useRecoilState(columnsState);
   const isMobile = useIsMobile();
+  
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [board, setBoard] = useState<any>(null);
   
   // Column modal state
   const [columnModalOpen, setColumnModalOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState<Column | undefined>(undefined);
   
-  if (!board || !boardId) {
+  useEffect(() => {
+    const fetchBoardData = async () => {
+      if (!boardId) return;
+      
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Fetch board data
+        const boardData = await getBoardById(boardId);
+        if (!boardData) {
+          setError("Board not found");
+          return;
+        }
+        setBoard(boardData);
+        
+        // Fetch columns
+        const columnsData = await getColumns(boardId);
+        setColumns(columnsData);
+        
+        // Fetch tasks
+        const tasksData = await getTasks(boardId);
+        setTasks(tasksData);
+        
+      } catch (error: any) {
+        console.error("Error fetching board data:", error);
+        setError(error.message || "Failed to load board data");
+        toast.error("Failed to load board data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBoardData();
+  }, [boardId, setColumns, setTasks]);
+  
+  if (isLoading) {
     return (
-      <div className="min-h-full flex flex-col items-center justify-center">
-        <h2 className="text-xl font-semibold mb-4">Board not found</h2>
+      <div className="h-full flex items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  if (error || !board || !boardId) {
+    return (
+      <div className="min-h-full flex flex-col items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-md mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error || "Board not found"}</AlertDescription>
+        </Alert>
         <Button asChild>
           <Link to="/">Return to Dashboard</Link>
         </Button>
@@ -53,7 +107,7 @@ export const BoardTemplate = () => {
     );
   }
   
-  const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
     
     // If there's no destination or the item was dropped in the same place, do nothing
@@ -67,26 +121,37 @@ export const BoardTemplate = () => {
     
     // Find the task that was dragged
     const taskId = draggableId;
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
     
     // Find the corresponding column to get the correct status type
     const targetColumn = columns.find(col => col.status === destination.droppableId);
     if (!targetColumn) return;
     
-    // Update the task's status based on the destination droppableId
-    setTasks(prevTasks => 
-      prevTasks.map(task => {
-        if (task.id === taskId) {
-          // Use type assertion to cast the status to TaskStatus
-          return {
-            ...task,
-            status: targetColumn.status as TaskStatus
-          };
-        }
-        return task;
-      })
-    );
-    
-    toast.success("Task moved successfully");
+    try {
+      // Update the task's status in Supabase
+      await updateTask(taskId, { 
+        status: targetColumn.status as TaskStatus 
+      });
+      
+      // Update local state
+      setTasks(prevTasks => 
+        prevTasks.map(task => {
+          if (task.id === taskId) {
+            return {
+              ...task,
+              status: targetColumn.status as TaskStatus
+            };
+          }
+          return task;
+        })
+      );
+      
+      toast.success("Task moved successfully");
+    } catch (error: any) {
+      console.error("Error updating task status:", error);
+      toast.error(error.message || "Failed to update task status");
+    }
   };
   
   const openCreateTaskModal = (status: string) => {
@@ -107,38 +172,56 @@ export const BoardTemplate = () => {
     setColumnModalOpen(true);
   };
   
-  const deleteColumn = (columnId: string) => {
+  const deleteColumn = async (columnId: string) => {
     // First ensure we have more than one column left
     if (columns.length <= 1) {
       toast.error("Cannot delete the only column");
       return;
     }
     
-    // Move tasks from this column to the first column
-    const firstColumn = columns.find(c => c.id !== columnId);
-    const tasksMigrated = tasks.filter(task => task.status === columns.find(c => c.id === columnId)?.status);
-    if (tasksMigrated.length > 0 && firstColumn) {
-      setTasks(prevTasks => 
-        prevTasks.map(task => {
-          if (task.status === columns.find(c => c.id === columnId)?.status) {
-            return {
-              ...task,
-              status: firstColumn.status as TaskStatus
-            };
-          }
-          return task;
-        })
-      );
+    try {
+      // Move tasks from this column to the first column
+      const firstColumn = columns.find(c => c.id !== columnId);
+      const columnToDelete = columns.find(c => c.id === columnId);
+      
+      if (!columnToDelete) return;
+      
+      const tasksMigrated = tasks.filter(task => task.status === columnToDelete.status);
+      
+      if (tasksMigrated.length > 0 && firstColumn) {
+        // Update all tasks in this column to the first column's status
+        for (const task of tasksMigrated) {
+          await updateTask(task.id, { status: firstColumn.status as TaskStatus });
+        }
+        
+        // Update local state
+        setTasks(prevTasks => 
+          prevTasks.map(task => {
+            if (task.status === columnToDelete.status) {
+              return {
+                ...task,
+                status: firstColumn.status as TaskStatus
+              };
+            }
+            return task;
+          })
+        );
+      }
+      
+      // Delete the column
+      // TODO: Implement API call to delete column
+      setColumns(prevColumns => prevColumns.filter(column => column.id !== columnId));
+      
+      toast.success("Column deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting column:", error);
+      toast.error(error.message || "Failed to delete column");
     }
-    
-    // Delete the column
-    setColumns(prevColumns => prevColumns.filter(column => column.id !== columnId));
-    toast.success("Column deleted successfully");
   };
   
   // Get number of tasks per status
   const getTaskCountByStatus = (status: string) => {
-    return boardTasks.filter(task => task.status === status).length;
+    return tasks.filter(task => task.status === status).length;
   };
   
   return (
@@ -148,7 +231,7 @@ export const BoardTemplate = () => {
           <div className="h-full overflow-x-auto">
             <div className="flex p-4 gap-6 min-h-[calc(100vh-64px)] pb-20 board-container">
               {columns.map((column, idx) => {
-                const columnTasks = boardTasks.filter(task => task.status === column.status);
+                const columnTasks = tasks.filter(task => task.status === column.status);
                 const taskCount = getTaskCountByStatus(column.status);
                 
                 return (

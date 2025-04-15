@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { RecoilRoot, useRecoilValue } from "recoil";
 import Index from "./pages/Index";
 import BoardDetail from "./pages/BoardDetail";
@@ -14,6 +14,9 @@ import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 import { themeState } from "./recoil/atoms/themeAtom";
 import { AppLayout } from "./components/templates/AppLayout";
+import { AuthProvider } from "./contexts/AuthContext";
+import Auth from "./pages/Auth";
+import ProtectedRoute from "./components/molecules/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -70,7 +73,8 @@ const AppContent = () => {
         <Sonner position="bottom-right" />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<AppLayout />}>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Index />} />
               <Route path="/board/:boardId" element={<BoardDetail />} />
               <Route path="/board/new" element={<BoardForm />} />
@@ -89,7 +93,9 @@ const AppContent = () => {
 const App = () => (
   <RecoilRoot>
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </QueryClientProvider>
   </RecoilRoot>
 );

@@ -4,12 +4,13 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { useRecoilState } from "recoil";
 import { boardsState } from "@/recoil/atoms/boardsAtom";
-import { ArrowRight, Edit, Trash2 } from "lucide-react";
+import { ArrowRight, Edit, Trash2, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { deleteBoard } from "@/services/boardService";
 
 export type BoardColumn = {
   id: string;
@@ -32,11 +33,23 @@ type BoardCardProps = {
 export const BoardCard = ({ board }: BoardCardProps) => {
   const [boards, setBoards] = useRecoilState(boardsState);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  const handleDelete = () => {
-    setBoards(boards.filter(b => b.id !== board.id));
-    toast.success("Board deleted successfully");
-    setIsDeleteDialogOpen(false);
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteBoard(board.id);
+      
+      // Update Recoil state
+      setBoards(boards.filter(b => b.id !== board.id));
+      toast.success("Board deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting board:", error);
+      toast.error(error.message || "Failed to delete board");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
   };
   
   // Get theme-based classes
@@ -92,8 +105,19 @@ export const BoardCard = ({ board }: BoardCardProps) => {
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
-                  <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
+                    Cancel
+                  </Button>
+                  <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                    {isDeleting ? (
+                      <>
+                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

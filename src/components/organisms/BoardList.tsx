@@ -1,14 +1,63 @@
 
-import { useRecoilValue } from "recoil";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useRecoilState } from "recoil";
 import { boardsState } from "@/recoil/atoms/boardsAtom";
 import { BoardCard } from "@/components/molecules/BoardCard";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { PlusCircle, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { getBoards } from "@/services/boardService";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader } from "@/components/atoms/Loader";
 
 export const BoardList = () => {
-  const boards = useRecoilValue(boardsState);
+  const [boards, setBoards] = useRecoilState(boardsState);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  
+  useEffect(() => {
+    const fetchBoards = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await getBoards();
+        setBoards(data);
+      } catch (error: any) {
+        console.error("Error fetching boards:", error);
+        setError(error.message || "Failed to fetch boards");
+        toast.error("Failed to load boards");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (user) {
+      fetchBoards();
+    }
+  }, [user, setBoards]);
+  
+  if (isLoading) {
+    return (
+      <div className="w-full flex justify-center items-center py-12">
+        <Loader size="lg" />
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
   
   return (
     <div className="w-full">
@@ -29,7 +78,7 @@ export const BoardList = () => {
       
       {boards.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {boards.map((board, index) => (
+          {boards.map((board) => (
             <BoardCard key={board.id} board={board} />
           ))}
         </div>

@@ -8,14 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, User } from "lucide-react";
+import { CalendarIcon, Loader, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRecoilState } from "recoil";
 import { tasksState } from "@/recoil/atoms/tasksAtom";
 import { TaskStatus, Task, TaskPriority } from "@/components/molecules/TaskCard";
-import { v4 as uuidv4 } from "@/lib/uuid";
+import { useState } from "react";
+import { createTask, updateTask } from "@/services/taskService";
+import { toast } from "sonner";
 
 type TaskFormProps = {
   boardId: string;
@@ -36,6 +38,7 @@ type TaskFormValues = z.infer<typeof taskFormSchema>;
 
 export const TaskForm = ({ boardId, existingTask, onSuccess, initialStatus }: TaskFormProps) => {
   const [tasks, setTasks] = useRecoilState(tasksState);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const defaultValues: Partial<TaskFormValues> = {
     title: existingTask?.title || "",
@@ -50,33 +53,47 @@ export const TaskForm = ({ boardId, existingTask, onSuccess, initialStatus }: Ta
     defaultValues,
   });
   
-  const onSubmit = (values: TaskFormValues) => {
-    if (existingTask) {
-      // Update existing task
-      setTasks(tasks.map((task) => 
-        task.id === existingTask.id 
-          ? { 
-              ...task, 
-              ...values,
-              dueDate: values.dueDate ? values.dueDate.toISOString() : undefined
-            } 
-          : task
-      ));
-    } else {
-      // Create new task - ensure required properties are provided
-      const newTask: Task = {
-        id: uuidv4(),
-        boardId,
-        title: values.title,
-        description: values.description,
-        status: values.status,
-        priority: values.priority,
-        dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
-      };
-      setTasks([...tasks, newTask]);
+  const onSubmit = async (values: TaskFormValues) => {
+    try {
+      setIsSubmitting(true);
+      
+      if (existingTask) {
+        // Update existing task
+        const updatedTask = await updateTask(existingTask.id, { 
+          ...values,
+          dueDate: values.dueDate ? values.dueDate.toISOString() : undefined
+        });
+        
+        // Update Recoil state
+        setTasks(tasks.map((task) => 
+          task.id === existingTask.id ? updatedTask : task
+        ));
+        
+        toast.success("Task updated successfully");
+      } else {
+        // Create new task
+        const newTask = await createTask({
+          title: values.title,
+          description: values.description,
+          status: values.status,
+          boardId,
+          priority: values.priority,
+          dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
+        });
+        
+        // Update Recoil state
+        setTasks([...tasks, newTask]);
+        
+        toast.success("Task created successfully");
+      }
+      
+      onSuccess?.();
+    } catch (error: any) {
+      console.error("Error saving task:", error);
+      toast.error(error.message || "Failed to save task");
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    onSuccess?.();
   };
   
   return (
@@ -213,11 +230,22 @@ export const TaskForm = ({ boardId, existingTask, onSuccess, initialStatus }: Ta
             type="button" 
             variant="outline" 
             onClick={onSuccess}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button type="submit">
-            {existingTask ? "Update Task" : "Create Task"}
+          <Button 
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                {existingTask ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              existingTask ? "Update Task" : "Create Task"
+            )}
           </Button>
         </div>
       </form>
