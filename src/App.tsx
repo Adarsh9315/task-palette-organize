@@ -1,9 +1,10 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { RecoilRoot, useRecoilValue } from "recoil"; // Add useRecoilValue here
+import { RecoilRoot, useRecoilValue } from "recoil";
 import Index from "./pages/Index";
 import BoardDetail from "./pages/BoardDetail";
 import BoardForm from "./pages/BoardForm";
@@ -64,31 +65,30 @@ const ThemeProvider = ({ children }) => {
   return <>{children}</>;
 };
 
-// Move ThemeProvider inside AppContent to ensure it has access to Recoil
+// AppContent component wrapped with ThemeProvider
 const AppContent = () => {
-  // Import useRecoilValue here so it's used within RecoilRoot
-  const { useRecoilValue } = require('recoil');
-  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner position="bottom-right" />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                <Route index element={<Index />} />
-                <Route path="/board/:boardId" element={<BoardDetail />} />
-                <Route path="/board/new" element={<BoardForm />} />
-                <Route path="/board/edit/:boardId" element={<BoardForm />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/about" element={<About />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <ThemeProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                  <Route index element={<Index />} />
+                  <Route path="/board/:boardId" element={<BoardDetail />} />
+                  <Route path="/board/new" element={<BoardForm />} />
+                  <Route path="/board/edit/:boardId" element={<BoardForm />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/about" element={<About />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </ThemeProvider>
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

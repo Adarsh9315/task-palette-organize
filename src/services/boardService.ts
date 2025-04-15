@@ -26,6 +26,36 @@ export async function getBoards(): Promise<Board[]> {
   }
 }
 
+// Get a board by ID
+export async function getBoardById(id: string): Promise<Board | null> {
+  try {
+    const { data, error } = await supabase
+      .from('boards')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // No rows returned
+      }
+      throw error;
+    }
+
+    if (!data) return null;
+
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      theme: data.theme || 'default',
+    };
+  } catch (error: any) {
+    console.error('Error fetching board by ID:', error);
+    throw error;
+  }
+}
+
 // Create a new board
 export async function createBoard(board: Omit<Board, "id">): Promise<Board> {
   try {
