@@ -29,7 +29,7 @@ type Profile = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
-  bio: string | null; // Make bio a proper field, not optional with ?
+  bio: string | null;
 };
 
 export function UserProfileForm() {
@@ -55,17 +55,25 @@ export function UserProfileForm() {
         setIsLoading(true);
         const { data, error } = await supabase
           .from("profiles")
-          .select("*")
+          .select("id, full_name, avatar_url, bio")
           .eq("id", user.id)
           .single();
           
         if (error) throw error;
         
-        setProfile(data);
+        // Make sure the data has the correct shape
+        const profileData: Profile = {
+          id: data.id,
+          full_name: data.full_name,
+          avatar_url: data.avatar_url,
+          bio: data.bio || null, // Ensure bio is present
+        };
+        
+        setProfile(profileData);
         form.reset({
-          name: data.full_name || "",
+          name: profileData.full_name || "",
           email: user.email || "",
-          bio: data.bio || "", // Safely access bio
+          bio: profileData.bio || "", 
         });
       } catch (error: any) {
         console.error("Error fetching profile:", error);

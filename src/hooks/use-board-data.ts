@@ -14,6 +14,12 @@ export const useBoardData = (boardId: string | undefined) => {
   const [board, setBoard] = useState<any>(null);
   const [columns, setColumns] = useRecoilState(columnsState);
   const [tasks, setTasks] = useRecoilState(tasksState);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Function to refresh data
+  const refreshData = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   useEffect(() => {
     const fetchBoardData = async () => {
@@ -49,7 +55,7 @@ export const useBoardData = (boardId: string | undefined) => {
     };
     
     fetchBoardData();
-  }, [boardId, setColumns, setTasks]);
+  }, [boardId, setColumns, setTasks, refreshKey]);
 
-  return { isLoading, error, board, columns, tasks };
+  return { isLoading, error, board, columns, tasks, refreshData };
 };

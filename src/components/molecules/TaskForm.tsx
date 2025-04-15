@@ -14,10 +14,25 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRecoilState } from "recoil";
 import { tasksState } from "@/recoil/atoms/tasksAtom";
-import { TaskStatus, Task, TaskPriority } from "@/components/molecules/TaskCard";
-import { useState } from "react";
-import { createTask, updateTask } from "@/services/taskService";
+import { TaskStatus, TaskPriority } from "@/types/task";
+import { useState, useEffect } from "react";
+import { createTask, updateTask, getTask } from "@/services/taskService";
 import { toast } from "sonner";
+import { useColumns } from "@/hooks/use-columns";
+
+type Task = {
+  id: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  boardId: string;
+  priority?: TaskPriority;
+  dueDate?: string;
+  assignedTo?: string[];
+  comments?: number;
+  attachments?: number;
+  subtasks?: { id: string; title: string; completed: boolean }[];
+};
 
 type TaskFormProps = {
   boardId: string;
@@ -39,11 +54,12 @@ type TaskFormValues = z.infer<typeof taskFormSchema>;
 export const TaskForm = ({ boardId, existingTask, onSuccess, initialStatus }: TaskFormProps) => {
   const [tasks, setTasks] = useRecoilState(tasksState);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { columns } = useColumns(boardId);
   
   const defaultValues: Partial<TaskFormValues> = {
     title: existingTask?.title || "",
     description: existingTask?.description || "",
-    status: existingTask?.status || initialStatus as TaskStatus || "todo",
+    status: (existingTask?.status || initialStatus as TaskStatus || "todo"),
     priority: existingTask?.priority || undefined,
     dueDate: existingTask?.dueDate ? new Date(existingTask.dueDate) : undefined,
   };
@@ -53,12 +69,34 @@ export const TaskForm = ({ boardId, existingTask, onSuccess, initialStatus }: Ta
     defaultValues,
   });
   
+  // Make sure we have the latest data from the database
+  useEffect(() => {
+    if (existingTask) {
+      const fetchTask = async () => {
+        try {
+          const freshTask = await getTask(existingTask.id);
+          form.reset({
+            title: freshTask.title,
+            description: freshTask.description,
+            status: freshTask.status,
+            priority: freshTask.priority,
+            dueDate: freshTask.dueDate ? new Date(freshTask.dueDate) : undefined,
+          });
+        } catch (error) {
+          console.error("Error fetching task:", error);
+        }
+      };
+      
+      fetchTask();
+    }
+  }, [existingTask, form]);
+  
   const onSubmit = async (values: TaskFormValues) => {
     try {
       setIsSubmitting(true);
       
       if (existingTask) {
-        // Update existing task
+        // Update existing task in Supabase
         const updatedTask = await updateTask(existingTask.id, { 
           ...values,
           dueDate: values.dueDate ? values.dueDate.toISOString() : undefined
@@ -71,7 +109,7 @@ export const TaskForm = ({ boardId, existingTask, onSuccess, initialStatus }: Ta
         
         toast.success("Task updated successfully");
       } else {
-        // Create new task
+        // Create new task in Supabase
         const newTask = await createTask({
           title: values.title,
           description: values.description,
@@ -144,9 +182,11 @@ export const TaskForm = ({ boardId, existingTask, onSuccess, initialStatus }: Ta
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="todo">To Do</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="done">Done</SelectItem>
+                    {columns.map((column) => (
+                      <SelectItem key={column.status} value={column.status as TaskStatus}>
+                        {column.title}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />

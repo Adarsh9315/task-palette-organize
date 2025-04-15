@@ -6,9 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { XCircle } from "lucide-react";
+import { XCircle, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { tasksState } from "@/recoil/atoms/tasksAtom";
+import { updateTask } from "@/services/taskService";
+import { createColumn, updateColumn, deleteColumn as deleteColumnService } from "@/services/columnService";
+import { useParams } from "react-router-dom";
 
 type ColumnModalProps = {
   isOpen: boolean;
@@ -17,15 +20,17 @@ type ColumnModalProps = {
 };
 
 export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
+  const { boardId } = useParams<{ boardId: string }>();
   const [columns, setColumns] = useRecoilState(columnsState);
   const [tasks, setTasks] = useRecoilState(tasksState);
   const [title, setTitle] = useState(column?.title || "");
   const [color, setColor] = useState(column?.color.replace("bg-[", "").replace("]", "") || "#00A3FF");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isEditing = !!column;
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!title.trim()) {
@@ -33,49 +38,65 @@ export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
       return;
     }
     
-    const status = column?.status || title.toLowerCase().replace(/\s+/g, '-');
-    
-    if (isEditing) {
-      // Update existing column
-      setColumns(prev => 
-        prev.map(col => 
-          col.id === column.id 
-            ? { 
-                ...col, 
-                title, 
-                color: `bg-[${color}]`, 
-                textColor: `text-[${color}]` 
-              }
-            : col
-        )
-      );
-      toast.success("Column updated successfully");
-    } else {
-      // Check if status already exists
-      const statusExists = columns.some(col => col.status === status);
-      
-      if (statusExists) {
-        toast.error("A column with similar name already exists");
-        return;
-      }
-      
-      // Create new column
-      const newColumn: Column = {
-        id: status,
-        title,
-        status,
-        color: `bg-[${color}]`,
-        textColor: `text-[${color}]`
-      };
-      
-      setColumns(prev => [...prev, newColumn]);
-      toast.success("Column added successfully");
+    if (!boardId) {
+      toast.error("No board selected");
+      return;
     }
     
-    onClose();
+    setIsLoading(true);
+    
+    try {
+      const status = column?.status || title.toLowerCase().replace(/\s+/g, '-');
+      
+      if (isEditing) {
+        // Update existing column in Supabase
+        const updatedColumn = await updateColumn(column.id, { 
+          title, 
+          color: `bg-[${color}]`, 
+          status,
+        });
+        
+        // Update local state
+        setColumns(prev => 
+          prev.map(col => 
+            col.id === column.id ? updatedColumn : col
+          )
+        );
+        toast.success("Column updated successfully");
+      } else {
+        // Check if status already exists
+        const statusExists = columns.some(col => col.status === status);
+        
+        if (statusExists) {
+          toast.error("A column with similar name already exists");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Create new column in Supabase
+        const columnOrder = columns.length;
+        const newColumn = await createColumn({
+          title,
+          status,
+          color: `bg-[${color}]`,
+          textColor: `text-[${color}]`,
+          columnOrder
+        }, boardId);
+        
+        // Update local state
+        setColumns(prev => [...prev, newColumn]);
+        toast.success("Column added successfully");
+      }
+    } catch (error: any) {
+      console.error("Error saving column:", error);
+      toast.error(error.message || "Failed to save column");
+    } finally {
+      setIsLoading(false);
+      onClose();
+    }
   };
   
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!column) return;
     
     // Check if there are tasks in this column
@@ -87,34 +108,53 @@ export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
       return;
     }
     
-    // If confirmed, move tasks to first available column or delete them
-    if (tasksInColumn.length > 0) {
-      const firstColumn = columns.find(col => col.id !== column.id);
-      
-      if (firstColumn) {
-        // Move tasks to first column
-        setTasks(prev => 
-          prev.map(task => 
-            task.status === column.status 
-              ? { ...task, status: firstColumn.status as "todo" | "in-progress" | "done" }
-              : task
-          )
-        );
-      } else {
-        // Delete tasks as there's no other column
-        setTasks(prev => prev.filter(task => task.status !== column.status));
-      }
-    }
+    setIsLoading(true);
     
-    // Delete the column
-    setColumns(prev => prev.filter(col => col.id !== column.id));
-    toast.success("Column deleted successfully");
-    setDeleteConfirm(false);
-    onClose();
+    try {
+      // If confirmed, move tasks to first available column or delete them
+      if (tasksInColumn.length > 0) {
+        const firstColumn = columns.find(col => col.id !== column.id);
+        
+        if (firstColumn) {
+          // Move tasks to first column in Supabase
+          for (const task of tasksInColumn) {
+            await updateTask(task.id, { status: firstColumn.status as "todo" | "in-progress" | "done" });
+          }
+          
+          // Update local state
+          setTasks(prev => 
+            prev.map(task => 
+              task.status === column.status 
+                ? { ...task, status: firstColumn.status as "todo" | "in-progress" | "done" }
+                : task
+            )
+          );
+        }
+      }
+      
+      // Delete the column in Supabase
+      await deleteColumnService(column.id);
+      
+      // Update local state
+      setColumns(prev => prev.filter(col => col.id !== column.id));
+      toast.success("Column deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting column:", error);
+      toast.error(error.message || "Failed to delete column");
+    } finally {
+      setIsLoading(false);
+      setDeleteConfirm(false);
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        onClose();
+        setDeleteConfirm(false);
+      }
+    }}>
       <DialogContent className="sm:max-w-[425px] bg-[#2B2C37] text-white">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Column" : "Add New Column"}</DialogTitle>
@@ -134,6 +174,7 @@ export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. To Do, In Progress"
               className="bg-[#20212C] border-gray-700"
+              disabled={isLoading}
             />
           </div>
           
@@ -146,12 +187,14 @@ export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 className="w-12 h-10 p-1 bg-[#20212C] border-gray-700"
+                disabled={isLoading}
               />
               <Input
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="#000000"
                 className="flex-1 bg-[#20212C] border-gray-700"
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -163,16 +206,24 @@ export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
                 variant="destructive" 
                 onClick={handleDelete}
                 className="flex items-center gap-1"
+                disabled={isLoading}
               >
-                <XCircle className="h-4 w-4" />
+                {isLoading ? (
+                  <Loader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <XCircle className="h-4 w-4" />
+                )}
                 {deleteConfirm ? "Confirm Delete" : "Delete Column"}
               </Button>
             )}
             <div className="flex gap-2">
-              <Button type="button" variant="secondary" onClick={onClose}>
+              <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
                 {isEditing ? "Save Changes" : "Add Column"}
               </Button>
             </div>

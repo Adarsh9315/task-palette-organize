@@ -4,6 +4,7 @@ import { tasksState } from "@/recoil/atoms/tasksAtom";
 import { columnsState } from "@/recoil/atoms/columnsAtom";
 import { createTaskModalState } from "@/recoil/atoms/modalAtom";
 import { updateTask } from "@/services/taskService";
+import { createColumn, deleteColumn as deleteColumnService, updateColumn as updateColumnService } from "@/services/columnService";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DropResult } from "react-beautiful-dnd";
@@ -64,6 +65,11 @@ export const useTaskOperations = (boardId: string | undefined) => {
   };
   
   const openCreateTaskModal = (status: string) => {
+    if (!boardId) {
+      toast.error("No board selected");
+      return;
+    }
+
     setCreateModal({
       isOpen: true,
       boardId,
@@ -117,8 +123,10 @@ export const useTaskOperations = (boardId: string | undefined) => {
         );
       }
       
-      // Delete the column
-      // TODO: Implement API call to delete column
+      // Delete the column in Supabase
+      await deleteColumnService(columnId);
+      
+      // Update state after successful deletion
       setColumns(prevColumns => prevColumns.filter(column => column.id !== columnId));
       
       toast.success("Column deleted successfully");
