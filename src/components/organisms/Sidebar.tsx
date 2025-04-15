@@ -4,16 +4,12 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useRecoilValue } from "recoil";
 import { boardsState } from "@/recoil/atoms/boardsAtom";
-import { 
-  Layout, 
-  Plus,
-  Sun, 
-  Moon
-} from "lucide-react";
+import { Layout, Plus, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useRecoilState } from "recoil";
 import { themeState } from "@/recoil/atoms/themeAtom";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type SidebarProps = {
   collapsed: boolean;
@@ -36,21 +32,19 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   };
 
   return (
-    <motion.aside 
-      initial={{ width: collapsed ? 80 : 280 }}
-      animate={{ width: collapsed ? 80 : 280 }}
-      transition={{ duration: 0.2 }}
+    <div
       className={cn(
-        "h-screen flex flex-col",
-        "fixed left-0 top-0 z-20 md:relative",
+        "h-full flex flex-col",
+        "w-full bg-sidebar z-20",
+        "border-r border-border/30",
         collapsed ? "items-center" : "",
-        "dark:bg-[#1A1F2C] border-r border-border/30"
+        theme.mode === "dark" ? "bg-[#1A1F2C]" : "bg-white"
       )}
     >
       {/* Sidebar header with logo */}
       <div className={cn(
         "h-16 px-4 flex items-center",
-        collapsed ? "justify-center" : "justify-start",
+        collapsed ? "justify-center" : "justify-between",
       )}>
         {!collapsed && (
           <div className="flex items-center space-x-2">
@@ -59,7 +53,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
               <div className="h-5 w-1 rounded-sm bg-primary/70"></div>
               <div className="h-5 w-1 rounded-sm bg-primary/40"></div>
             </div>
-            <span className="font-bold text-lg text-white ml-2">kanban</span>
+            <span className="font-bold text-lg text-foreground ml-2">kanban</span>
           </div>
         )}
         {collapsed && (
@@ -69,29 +63,40 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             <div className="h-1 w-5 rounded-sm bg-primary/40"></div>
           </div>
         )}
+        
+        {!collapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggle}
+            className="h-8 w-8"
+          >
+            <ChevronLeft size={16} />
+          </Button>
+        )}
       </div>
 
       {/* All boards counter */}
       {!collapsed && (
         <div className="px-6 py-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-400">ALL BOARDS ({boardCount})</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">ALL BOARDS ({boardCount})</p>
         </div>
       )}
       
-      {/* Main sidebar content */}
-      <div className="flex-1 overflow-y-auto py-2 flex flex-col">        
-        <div className={cn("space-y-1 px-2", collapsed && "items-center flex flex-col")}>
+      {/* Main sidebar content with scrolling */}
+      <ScrollArea className="flex-1">
+        <div className={cn("py-2", collapsed && "items-center flex flex-col")}>
           {filteredBoards.length > 0 ? (
             filteredBoards.map((board) => (
               <Link 
                 key={board.id}
                 to={`/board/${board.id}`} 
                 className={cn(
-                  "flex items-center px-4 py-3 rounded-r-full text-sm transition-colors",
+                  "flex items-center px-4 py-3 mx-2 rounded-r-full text-sm transition-colors",
                   location.pathname === `/board/${board.id}` 
                     ? "bg-primary text-white font-medium" 
-                    : "text-gray-400 hover:text-gray-200",
-                  collapsed ? "justify-center w-10 h-10" : "w-full",
+                    : "text-muted-foreground hover:text-foreground",
+                  collapsed ? "justify-center w-10 h-10" : "w-[calc(100%-16px)]",
                 )}
               >
                 <Layout size={collapsed ? 20 : 16} className={cn(!collapsed && "mr-3")} />
@@ -112,8 +117,8 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
           <Link 
             to="/board/new"
             className={cn(
-              "flex items-center px-4 py-3 rounded-r-full text-sm transition-colors text-primary hover:bg-primary/10",
-              collapsed ? "justify-center w-10 h-10" : "w-full"
+              "flex items-center px-4 py-3 mx-2 rounded-r-full text-sm transition-colors text-primary hover:bg-primary/10",
+              collapsed ? "justify-center w-10 h-10" : "w-[calc(100%-16px)]"
             )}
           >
             <Plus size={collapsed ? 20 : 16} className={cn(!collapsed && "mr-3")} />
@@ -122,12 +127,15 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             )}
           </Link>
         </div>
-      </div>
+      </ScrollArea>
 
       {/* Theme toggle at bottom */}
-      <div className="px-5 pb-5 pt-2">
-        <div className="flex items-center justify-center bg-secondary/50 rounded-md p-3 mb-2">
-          <Sun size={16} className="text-gray-400 mr-2" />
+      <div className="p-4">
+        <div className={cn(
+          "flex items-center justify-center bg-secondary/50 rounded-md p-3 mb-2",
+          collapsed ? "flex-col" : "flex-row"
+        )}>
+          {!collapsed && <Sun size={16} className="text-muted-foreground mr-2" />}
           <div className="relative mx-2">
             <input 
               type="checkbox"
@@ -145,9 +153,20 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
               />
             </label>
           </div>
-          <Moon size={16} className="text-gray-400" />
+          {!collapsed && <Moon size={16} className="text-muted-foreground" />}
         </div>
+        
+        {collapsed && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggle}
+            className="w-full flex items-center justify-center mt-4"
+          >
+            <ChevronRight size={16} />
+          </Button>
+        )}
       </div>
-    </motion.aside>
+    </div>
   );
 };

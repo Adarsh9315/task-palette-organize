@@ -1,14 +1,15 @@
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, MoreVertical } from "lucide-react";
 import { ThemeSwitcher } from "@/components/molecules/ThemeSwitcher";
 import { motion } from "framer-motion";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { createTaskModalState } from "@/recoil/atoms/modalAtom";
 import { toast } from "sonner";
+import { boardByIdSelector } from "@/recoil/selectors/boardSelectors";
+import { cn } from "@/lib/utils";
 
 interface AppHeaderProps {
   children?: React.ReactNode;
@@ -16,11 +17,11 @@ interface AppHeaderProps {
 
 export const AppHeader = ({ children }: AppHeaderProps) => {
   const navigate = useNavigate();
+  const { boardId } = useParams<{ boardId: string }>();
   const [createModal, setCreateModal] = useRecoilState(createTaskModalState);
+  const currentBoard = useRecoilValue(boardByIdSelector(boardId || ""));
   
   const openCreateTaskModal = () => {
-    const boardId = window.location.pathname.split('/')[2];
-    
     if (!boardId || boardId === 'new' || boardId === 'edit') {
       toast.error("Please select a board first");
       return;
@@ -37,18 +38,29 @@ export const AppHeader = ({ children }: AppHeaderProps) => {
     navigate('/board/new');
   };
   
+  const handleEditBoard = () => {
+    if (boardId) {
+      navigate(`/board/edit/${boardId}`);
+    } else {
+      toast.error("Please select a board first");
+    }
+  };
+  
   return (
     <motion.header 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full flex h-16 items-center justify-between border-b border-border/30 bg-[#1A1F2C] px-4"
+      className={cn(
+        "w-full flex h-16 items-center justify-between border-b border-border/30 px-4",
+        "dark:bg-[#1A1F2C] bg-white"
+      )}
     >
       <div className="flex-1 md:flex-initial flex items-center gap-2">
         {children}
-        <Link to="/" className="text-lg font-bold text-white">
-          Platform Launch
-        </Link>
+        <h1 className="text-lg font-bold">
+          {currentBoard?.title || "Platform Launch"}
+        </h1>
       </div>
 
       <div className="flex items-center gap-2">
@@ -63,7 +75,7 @@ export const AppHeader = ({ children }: AppHeaderProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-9 w-9 p-0 rounded-full" aria-label="More options">
-              <MoreVertical className="h-5 w-5 text-gray-400" />
+              <MoreVertical className="h-5 w-5 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end">
@@ -72,12 +84,20 @@ export const AppHeader = ({ children }: AppHeaderProps) => {
             <DropdownMenuItem onClick={handleNewBoard} className="cursor-pointer">
               Create New Board
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              Edit Board
+            <DropdownMenuItem onClick={handleEditBoard} className="cursor-pointer">
+              Edit Current Board
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              Delete Board
-            </DropdownMenuItem>
+            {boardId && (
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive cursor-pointer"
+                onClick={() => {
+                  // This would typically show a confirmation dialog
+                  toast.error("Delete functionality not implemented");
+                }}
+              >
+                Delete Board
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

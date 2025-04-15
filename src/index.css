@@ -35,7 +35,7 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -117,7 +117,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-hidden;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -125,13 +125,18 @@
   .dark {
     color-scheme: dark;
   }
-
-  .dark p, .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6, .dark span, .dark div {
-    @apply text-gray-100;
+  
+  /* Default styles that are overridden by dark mode */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground;
   }
   
-  .dark .text-muted-foreground {
-    @apply text-gray-300;
+  p, span, div {
+    @apply text-foreground;
+  }
+  
+  .text-muted {
+    @apply text-muted-foreground;
   }
 }
 

@@ -31,8 +31,9 @@ const getInitialTheme = (): ThemeState => {
     };
   }
   
+  // Default to dark mode for this app
   return {
-    mode: "light",
+    mode: "dark",
     colorScheme: "blue",
     useSystemTheme: false,
   };
