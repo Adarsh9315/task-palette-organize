@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { columnsState, Column } from "@/recoil/atoms/columnsAtom";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TaskStatus } from "@/components/molecules/TaskCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,13 +66,20 @@ export const BoardTemplate = () => {
     // Find the task that was dragged
     const taskId = draggableId;
     
+    // Find the corresponding column to get the correct status type
+    const targetColumn = columns.find(col => col.status === destination.droppableId);
+    if (!targetColumn) return;
+    
     // Update the task's status based on the destination droppableId
+    // We need to ensure the status is properly typed as TaskStatus
     setTasks(prevTasks => 
       prevTasks.map(task => {
         if (task.id === taskId) {
+          // Ensure we're casting the status to TaskStatus
+          const newStatus = targetColumn.status as TaskStatus;
           return {
             ...task,
-            status: destination.droppableId as "todo" | "in-progress" | "done"
+            status: newStatus
           };
         }
         return task;
@@ -114,9 +122,11 @@ export const BoardTemplate = () => {
         setTasks(prevTasks => 
           prevTasks.map(task => {
             if (task.status === columns.find(c => c.id === columnId)?.status) {
+              // Cast the status to TaskStatus to ensure type safety
+              const newStatus = firstColumn.status as TaskStatus;
               return {
                 ...task,
-                status: firstColumn.status
+                status: newStatus
               };
             }
             return task;
@@ -139,7 +149,7 @@ export const BoardTemplate = () => {
     <div className="h-full flex flex-col bg-background w-full">
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex-1 w-full overflow-hidden">
-          <ScrollArea className="w-full h-full" orientation="horizontal">
+          <ScrollArea className="w-full h-full">
             <div className="flex p-4 gap-6 min-h-[calc(100vh-64px)]">
               {columns.map((column, idx) => {
                 const columnTasks = boardTasks.filter(task => task.status === column.status);
@@ -267,3 +277,4 @@ export const BoardTemplate = () => {
     </div>
   );
 };
+
