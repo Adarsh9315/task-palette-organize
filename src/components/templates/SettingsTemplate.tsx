@@ -3,13 +3,11 @@ import { useState } from "react";
 import { AppHeader } from "@/components/organisms/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfileForm } from "@/components/molecules/UserProfileForm";
-import { NotificationSettings } from "@/components/molecules/NotificationSettings";
-import { SecuritySettings } from "@/components/molecules/SecuritySettings";
 import { ThemeSettings } from "@/components/molecules/ThemeSettings";
 import { DatabaseSettings } from "@/components/molecules/DatabaseSettings";
 import { ProjectSettings } from "@/components/molecules/ProjectSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, User, Bell, Shield, Palette, Database, Layout } from "lucide-react";
+import { User, Palette, Database, Layout } from "lucide-react";
 
 export const SettingsTemplate = () => {
   const [activeTab, setActiveTab] = useState("project");
@@ -65,20 +63,6 @@ export const SettingsTemplate = () => {
                   >
                     <Palette className="mr-2 h-4 w-4" />
                     Theme
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="notifications" 
-                    className="justify-start px-4 py-2 text-left flex items-center"
-                  >
-                    <Bell className="mr-2 h-4 w-4" />
-                    Notifications
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="security" 
-                    className="justify-start px-4 py-2 text-left flex items-center"
-                  >
-                    <Shield className="mr-2 h-4 w-4" />
-                    Security
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -144,36 +128,6 @@ export const SettingsTemplate = () => {
                 </CardHeader>
                 <CardContent>
                   <ThemeSettings />
-                </CardContent>
-              </TabsContent>
-              
-              <TabsContent value="notifications" className="m-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Notifications
-                  </CardTitle>
-                  <CardDescription>
-                    Configure how you receive notifications.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <NotificationSettings />
-                </CardContent>
-              </TabsContent>
-              
-              <TabsContent value="security" className="m-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    Security
-                  </CardTitle>
-                  <CardDescription>
-                    Update your security settings.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SecuritySettings />
                 </CardContent>
               </TabsContent>
             </Tabs>

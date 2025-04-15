@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRecoilState } from "recoil";
-import { projectSettingsState } from "@/recoil/atoms/projectSettingsAtom";
+import { projectSettingsState, ProjectSettings as ProjectSettingsType } from "@/recoil/atoms/projectSettingsAtom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,12 +23,14 @@ export function ProjectSettings() {
   const [projectSettings, setProjectSettings] = useRecoilState(projectSettingsState);
   const [isLoading, setIsLoading] = useState(false);
   
+  const defaultValues: ProjectSettingsType = projectSettings || {
+    projectName: "TaskPalette",
+    description: "A task management app with Kanban board functionality."
+  };
+  
   const form = useForm<ProjectSettingsValues>({
     resolver: zodResolver(projectSettingsSchema),
-    defaultValues: projectSettings || {
-      projectName: "TaskPalette",
-      description: "A task management app with Kanban board functionality."
-    },
+    defaultValues,
   });
 
   const onSubmit = async (values: ProjectSettingsValues) => {

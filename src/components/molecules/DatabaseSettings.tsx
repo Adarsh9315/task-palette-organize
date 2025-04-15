@@ -1,17 +1,16 @@
 
 import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRecoilState } from "recoil";
-import { dbConfigState } from "@/recoil/atoms/dbConfigAtom";
+import { DbConfig, dbConfigState } from "@/recoil/atoms/dbConfigAtom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
 
 // Define the schema for database configuration
 const dbConfigSchema = z.object({
@@ -23,27 +22,25 @@ const dbConfigSchema = z.object({
   password: z.string().min(1, { message: "Password is required" }),
 });
 
-type DbConfigFormValues = z.infer<typeof dbConfigSchema>;
-
-const defaultValues: DbConfigFormValues = {
-  dbType: "postgresql",
-  host: "localhost",
-  port: "",
-  dbName: "",
-  username: "",
-  password: "",
-};
-
 export function DatabaseSettings() {
   const [dbConfig, setDbConfig] = useRecoilState(dbConfigState);
   const [isLoading, setIsLoading] = useState(false);
   
-  const form = useForm<DbConfigFormValues>({
+  const defaultValues: DbConfig = dbConfig || {
+    dbType: "postgresql",
+    host: "localhost",
+    port: "5432",
+    dbName: "taskpalette",
+    username: "postgres",
+    password: "password"
+  };
+  
+  const form = useForm<z.infer<typeof dbConfigSchema>>({
     resolver: zodResolver(dbConfigSchema),
-    defaultValues: dbConfig || defaultValues,
+    defaultValues,
   });
 
-  const onSubmit = async (values: DbConfigFormValues) => {
+  const onSubmit = async (values: z.infer<typeof dbConfigSchema>) => {
     setIsLoading(true);
     
     try {
@@ -51,18 +48,7 @@ export function DatabaseSettings() {
       setDbConfig(values);
       
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, you would make an API call here
-      // const response = await fetch('/api/db/config', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(values),
-      // });
-      
-      // if (!response.ok) throw new Error('Failed to save configuration');
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       toast.success("Database configuration saved successfully!");
     } catch (error) {
@@ -73,28 +59,8 @@ export function DatabaseSettings() {
     }
   };
 
-  const getDefaultPort = (dbType: string) => {
-    switch (dbType) {
-      case "postgresql":
-        return "5432";
-      case "mongodb":
-        return "27017";
-      case "mysql":
-        return "3306";
-      default:
-        return "";
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Database Configuration</h3>
-        <p className="text-sm text-muted-foreground">
-          Configure the database connection for your task management system.
-        </p>
-      </div>
-      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -103,11 +69,8 @@ export function DatabaseSettings() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Database Type</FormLabel>
-                <Select
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    form.setValue("port", getDefaultPort(value));
-                  }}
+                <Select 
+                  onValueChange={field.onChange} 
                   defaultValue={field.value}
                 >
                   <FormControl>
@@ -148,7 +111,7 @@ export function DatabaseSettings() {
                 <FormItem>
                   <FormLabel>Port</FormLabel>
                   <FormControl>
-                    <Input placeholder={getDefaultPort(form.getValues('dbType'))} {...field} />
+                    <Input placeholder="5432" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,7 +141,7 @@ export function DatabaseSettings() {
                 <FormItem>
                   <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input placeholder="postgres" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -192,7 +155,7 @@ export function DatabaseSettings() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input type="password" placeholder="●●●●●●●" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -206,18 +169,15 @@ export function DatabaseSettings() {
         </form>
       </Form>
       
-      {dbConfig && (
-        <Card className="mt-6">
-          <CardContent className="pt-6">
-            <Label htmlFor="json-preview" className="text-sm font-medium mb-2 block">Configuration Preview</Label>
-            <div className="bg-muted rounded-md p-4 overflow-auto">
-              <pre className="text-xs" id="json-preview">
-                {JSON.stringify(dbConfig, null, 2)}
-              </pre>
-            </div>
-          </CardContent>
+      {/* JSON Preview */}
+      <div className="mt-6">
+        <h4 className="text-sm font-medium mb-2">Configuration Preview</h4>
+        <Card className="overflow-hidden">
+          <pre className="p-4 text-xs overflow-x-auto bg-muted/50">
+            {JSON.stringify(form.getValues(), null, 2)}
+          </pre>
         </Card>
-      )}
+      </div>
     </div>
   );
 }
