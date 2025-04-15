@@ -15,20 +15,17 @@ export const CreateTaskModal = () => {
     });
   };
   
-  if (!modalState.boardId) {
-    return null;
-  }
-  
   return (
     <Dialog open={modalState.isOpen} onOpenChange={(open) => {
       if (!open) handleClose();
     }}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] bg-[#2B2C37] text-white">
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
         </DialogHeader>
         <TaskForm 
           boardId={modalState.boardId}
+          initialStatus={modalState.initialStatus}
           onSuccess={handleClose}
         />
       </DialogContent>

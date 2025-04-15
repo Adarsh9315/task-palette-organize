@@ -42,8 +42,12 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       root.classList.add('transition-colors');
       root.classList.add('duration-300');
       
-      // Apply theme
-      root.classList.toggle("dark", theme.mode === "dark");
+      // Apply theme - force it directly to avoid any flashing
+      if (theme.mode === "dark") {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
       
       // Store the theme preference in localStorage
       localStorage.setItem("theme", JSON.stringify(theme));

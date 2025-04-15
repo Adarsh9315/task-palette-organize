@@ -1,5 +1,5 @@
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, MoreVertical } from "lucide-react";
 import { ThemeSwitcher } from "@/components/molecules/ThemeSwitcher";
@@ -8,20 +8,33 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useRecoilState } from "recoil";
 import { createTaskModalState } from "@/recoil/atoms/modalAtom";
+import { toast } from "sonner";
 
 interface AppHeaderProps {
   children?: React.ReactNode;
 }
 
 export const AppHeader = ({ children }: AppHeaderProps) => {
+  const navigate = useNavigate();
   const [createModal, setCreateModal] = useRecoilState(createTaskModalState);
   
   const openCreateTaskModal = () => {
+    const boardId = window.location.pathname.split('/')[2];
+    
+    if (!boardId || boardId === 'new' || boardId === 'edit') {
+      toast.error("Please select a board first");
+      return;
+    }
+    
     setCreateModal({
       isOpen: true,
-      boardId: window.location.pathname.split('/')[2],
+      boardId: boardId,
       initialStatus: "todo"
     });
+  };
+
+  const handleNewBoard = () => {
+    navigate('/board/new');
   };
   
   return (
@@ -29,7 +42,7 @@ export const AppHeader = ({ children }: AppHeaderProps) => {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/30 bg-[#1A1F2C] px-4"
+      className="w-full flex h-16 items-center justify-between border-b border-border/30 bg-[#1A1F2C] px-4"
     >
       <div className="flex-1 md:flex-initial flex items-center gap-2">
         {children}
@@ -56,14 +69,19 @@ export const AppHeader = ({ children }: AppHeaderProps) => {
           <DropdownMenuContent className="w-56" align="end">
             <DropdownMenuLabel>Board Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleNewBoard} className="cursor-pointer">
+              Create New Board
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">
               Edit Board
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">
               Delete Board
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <ThemeSwitcher />
       </div>
     </motion.header>
   );

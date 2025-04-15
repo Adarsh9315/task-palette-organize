@@ -31,7 +31,7 @@ export const BoardTemplate = () => {
   const [tasks, setTasks] = useRecoilState(tasksState);
   const board = useRecoilValue(boardByIdSelector(boardId || ""));
   const boardTasks = useRecoilValue(filteredTasksSelector(boardId || ""));
-  const setCreateModal = useRecoilState(createTaskModalState)[1];
+  const [createModal, setCreateModal] = useRecoilState(createTaskModalState);
   const [columns, setColumns] = useRecoilState(columnsState);
   
   // Column modal state
@@ -104,7 +104,7 @@ export const BoardTemplate = () => {
   };
   
   return (
-    <div className="min-h-full p-4 bg-[#1A1F2C]">
+    <div className="min-h-full p-4 bg-[#1A1F2C] w-full">
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex overflow-x-auto pb-6 gap-6">
           {columns.map((column, idx) => {

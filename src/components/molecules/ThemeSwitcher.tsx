@@ -24,19 +24,53 @@ export const ThemeSwitcher = () => {
     const newTheme = { ...theme, mode: newMode, useSystemTheme: false };
     setTheme(newTheme);
     localStorage.setItem("theme", JSON.stringify(newTheme));
+
+    // Manually update the class on document element
+    if (newMode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
   const toggleSystemTheme = () => {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const newMode: ThemeMode = prefersDark ? "dark" : "light";
+    const useSystemTheme = !theme.useSystemTheme;
     const newTheme = { 
       ...theme, 
       mode: newMode,
-      useSystemTheme: !theme.useSystemTheme 
+      useSystemTheme
     };
+    
     setTheme(newTheme);
     localStorage.setItem("theme", JSON.stringify(newTheme));
+
+    // Manually update the class on document element
+    if (prefersDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
+
+  // Force recheck dark mode on mount
+  useEffect(() => {
+    if (theme.useSystemTheme) {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } else {
+      if (theme.mode === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, [mounted, theme]);
 
   // Don't render anything on the server or until mounted on client
   if (!mounted) return null;
@@ -77,6 +111,7 @@ export const ThemeSwitcher = () => {
                 size="sm"
                 className="flex-1"
                 onClick={() => {
+                  document.documentElement.classList.remove("dark");
                   setTheme({ ...theme, mode: "light", useSystemTheme: false });
                   localStorage.setItem("theme", JSON.stringify({ ...theme, mode: "light", useSystemTheme: false }));
                 }}
@@ -89,6 +124,7 @@ export const ThemeSwitcher = () => {
                 size="sm"
                 className="flex-1"
                 onClick={() => {
+                  document.documentElement.classList.add("dark");
                   setTheme({ ...theme, mode: "dark", useSystemTheme: false });
                   localStorage.setItem("theme", JSON.stringify({ ...theme, mode: "dark", useSystemTheme: false }));
                 }}

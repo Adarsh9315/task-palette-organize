@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { tasksState } from "@/recoil/atoms/tasksAtom";
 
 type ColumnModalProps = {
   isOpen: boolean;
@@ -17,8 +18,10 @@ type ColumnModalProps = {
 
 export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
   const [columns, setColumns] = useRecoilState(columnsState);
+  const [tasks, setTasks] = useRecoilState(tasksState);
   const [title, setTitle] = useState(column?.title || "");
   const [color, setColor] = useState(column?.color.replace("bg-[", "").replace("]", "") || "#00A3FF");
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const isEditing = !!column;
   
@@ -76,10 +79,37 @@ export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
     if (!column) return;
     
     // Check if there are tasks in this column
-    // If yes, show warning and don't delete
+    const tasksInColumn = tasks.filter(task => task.status === column.status);
     
+    if (tasksInColumn.length > 0 && !deleteConfirm) {
+      setDeleteConfirm(true);
+      toast.warning(`This column contains ${tasksInColumn.length} tasks. Delete will move them to the first column.`);
+      return;
+    }
+    
+    // If confirmed, move tasks to first available column or delete them
+    if (tasksInColumn.length > 0) {
+      const firstColumn = columns.find(col => col.id !== column.id);
+      
+      if (firstColumn) {
+        // Move tasks to first column
+        setTasks(prev => 
+          prev.map(task => 
+            task.status === column.status 
+              ? { ...task, status: firstColumn.status as "todo" | "in-progress" | "done" }
+              : task
+          )
+        );
+      } else {
+        // Delete tasks as there's no other column
+        setTasks(prev => prev.filter(task => task.status !== column.status));
+      }
+    }
+    
+    // Delete the column
     setColumns(prev => prev.filter(col => col.id !== column.id));
     toast.success("Column deleted successfully");
+    setDeleteConfirm(false);
     onClose();
   };
 
@@ -135,7 +165,7 @@ export const ColumnModal = ({ isOpen, onClose, column }: ColumnModalProps) => {
                 className="flex items-center gap-1"
               >
                 <XCircle className="h-4 w-4" />
-                Delete Column
+                {deleteConfirm ? "Confirm Delete" : "Delete Column"}
               </Button>
             )}
             <div className="flex gap-2">

@@ -66,6 +66,20 @@ export const TaskCard = ({ task }: TaskCardProps) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  // Get status badge
+  const getStatusBadge = () => {
+    switch (task.status) {
+      case "todo":
+        return <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/20">TODO</Badge>;
+      case "in-progress":
+        return <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">IN PROGRESS</Badge>;
+      case "done":
+        return <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">DONE</Badge>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -75,14 +89,12 @@ export const TaskCard = ({ task }: TaskCardProps) => {
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleEdit}
     >
-      {task.priority && (
-        <div className="flex justify-between items-center mb-2">
-          <Badge variant="outline" className="text-xs">
-            {task.priority.toUpperCase()}
-          </Badge>
+      <div className="flex justify-between items-center mb-2">
+        {getStatusBadge()}
+        {task.priority && (
           <div className={cn("h-2 w-2 rounded-full", getPriorityColor())}></div>
-        </div>
-      )}
+        )}
+      </div>
       
       <h3 className="font-bold text-white mb-2">{task.title}</h3>
       

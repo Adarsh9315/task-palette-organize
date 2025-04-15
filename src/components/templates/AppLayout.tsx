@@ -33,7 +33,7 @@ export const AppLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen w-full bg-background">
       {/* Desktop sidebar */}
       {isDesktop && (
         <Sidebar 
@@ -56,7 +56,7 @@ export const AppLayout = () => {
       
       {/* Main content */}
       <div className={cn(
-        "flex-1 flex flex-col transition-all duration-200",
+        "flex-1 flex flex-col w-full transition-all duration-200",
         isDesktop && !sidebarCollapsed && "md:ml-[250px]",
         isDesktop && sidebarCollapsed && "md:ml-[80px]",
       )}>
@@ -76,7 +76,7 @@ export const AppLayout = () => {
           </AppHeader>
         </div>
         
-        <main className="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full">
+        <main className="flex-1 w-full">
           <Outlet />
         </main>
       </div>

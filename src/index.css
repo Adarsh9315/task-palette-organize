@@ -117,13 +117,21 @@
   }
 
   body {
-    @apply bg-background text-foreground dark:bg-[#1A1F2C] dark:text-white;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
-  /* Force dark mode */
+  /* Improved dark mode text */
   .dark {
     color-scheme: dark;
+  }
+
+  .dark p, .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6, .dark span, .dark div {
+    @apply text-gray-100;
+  }
+  
+  .dark .text-muted-foreground {
+    @apply text-gray-300;
   }
 }
 
@@ -179,6 +187,15 @@
 
   .dark ::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Full width container classes */
+  .full-width-container {
+    @apply w-full max-w-none px-0;
+  }
+
+  .full-width-header {
+    @apply w-full max-w-none px-4 md:px-6;
   }
 }
 
