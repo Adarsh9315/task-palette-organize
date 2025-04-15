@@ -20,6 +20,7 @@ import { columnsState, Column } from "@/recoil/atoms/columnsAtom";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TaskStatus } from "@/components/molecules/TaskCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +36,7 @@ export const BoardTemplate = () => {
   const boardTasks = useRecoilValue(filteredTasksSelector(boardId || ""));
   const [createModal, setCreateModal] = useRecoilState(createTaskModalState);
   const [columns, setColumns] = useRecoilState(columnsState);
+  const isMobile = useIsMobile();
   
   // Column modal state
   const [columnModalOpen, setColumnModalOpen] = useState(false);
@@ -115,24 +117,22 @@ export const BoardTemplate = () => {
     }
     
     // Move tasks from this column to the first column
+    const firstColumn = columns.find(c => c.id !== columnId);
     const tasksMigrated = tasks.filter(task => task.status === columns.find(c => c.id === columnId)?.status);
-    if (tasksMigrated.length > 0) {
-      const firstColumn = columns.find(c => c.id !== columnId);
-      if (firstColumn) {
-        setTasks(prevTasks => 
-          prevTasks.map(task => {
-            if (task.status === columns.find(c => c.id === columnId)?.status) {
-              // Cast the status to TaskStatus to ensure type safety
-              const newStatus = firstColumn.status as TaskStatus;
-              return {
-                ...task,
-                status: newStatus
-              };
-            }
-            return task;
-          })
-        );
-      }
+    if (tasksMigrated.length > 0 && firstColumn) {
+      setTasks(prevTasks => 
+        prevTasks.map(task => {
+          if (task.status === columns.find(c => c.id === columnId)?.status) {
+            // Cast the status to TaskStatus to ensure type safety
+            const newStatus = firstColumn.status as TaskStatus;
+            return {
+              ...task,
+              status: newStatus
+            };
+          }
+          return task;
+        })
+      );
     }
     
     // Delete the column
@@ -150,7 +150,7 @@ export const BoardTemplate = () => {
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex-1 w-full overflow-hidden">
           <ScrollArea className="w-full h-full">
-            <div className="flex p-4 gap-6 min-h-[calc(100vh-64px)]">
+            <div className="flex p-4 gap-6 min-h-[calc(100vh-64px)] overflow-x-auto pb-20">
               {columns.map((column, idx) => {
                 const columnTasks = boardTasks.filter(task => task.status === column.status);
                 const taskCount = getTaskCountByStatus(column.status);
@@ -161,7 +161,7 @@ export const BoardTemplate = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: idx * 0.1 }}
-                    className="flex flex-col min-w-[300px] max-w-[300px]"
+                    className="flex flex-col min-w-[300px] max-w-[300px] h-fit"
                   >
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center">
@@ -207,7 +207,7 @@ export const BoardTemplate = () => {
                           ref={provided.innerRef}
                           {...provided.droppableProps}
                           className={cn(
-                            "flex-1 min-h-[400px] transition-colors duration-200 rounded-lg p-2",
+                            "flex-1 min-h-[200px] transition-colors duration-200 rounded-lg p-2",
                             snapshot.isDraggingOver ? 'bg-muted/20' : ''
                           )}
                         >
@@ -277,4 +277,3 @@ export const BoardTemplate = () => {
     </div>
   );
 };
-

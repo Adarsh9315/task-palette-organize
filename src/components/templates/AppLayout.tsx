@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { AppHeader } from "@/components/organisms/AppHeader";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const AppLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -37,7 +36,7 @@ export const AppLayout = () => {
     <div className="flex min-h-screen w-full bg-background overflow-hidden">
       {/* Desktop sidebar */}
       <div className={cn(
-        "fixed h-full z-30 transition-all duration-300 ease-in-out",
+        "fixed top-0 h-full z-30 transition-all duration-300 ease-in-out",
         isDesktop && !sidebarCollapsed ? "translate-x-0 w-64" : "w-0 -translate-x-full",
         isDesktop && sidebarCollapsed && "w-20 translate-x-0"
       )}>
@@ -83,28 +82,16 @@ export const AppLayout = () => {
       )}>
         <div className="sticky top-0 z-20 w-full">
           <AppHeader>
-            {!isDesktop && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="mr-2" 
-                onClick={() => setMobileSidebarOpen(true)}
-              >
-                <Menu size={20} />
-                <span className="sr-only">Menu</span>
-              </Button>
-            )}
-            {isDesktop && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="mr-2" 
-                onClick={toggleSidebar}
-              >
-                <Menu size={20} />
-                <span className="sr-only">Toggle Sidebar</span>
-              </Button>
-            )}
+            {/* Toggle button for sidebar on mobile/desktop */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="mr-2" 
+              onClick={toggleSidebar}
+            >
+              <Menu size={20} />
+              <span className="sr-only">Toggle Sidebar</span>
+            </Button>
           </AppHeader>
         </div>
         

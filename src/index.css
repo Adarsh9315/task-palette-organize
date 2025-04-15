@@ -194,6 +194,27 @@
     background-color: rgba(255, 255, 255, 0.3);
   }
 
+  /* Light mode scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    border: 2px solid transparent;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
   /* Full width container classes */
   .full-width-container {
     @apply w-full max-w-none px-0;
@@ -201,6 +222,21 @@
 
   .full-width-header {
     @apply w-full max-w-none px-4 md:px-6;
+  }
+  
+  /* Board layout utilities */
+  .board-container {
+    @apply overflow-x-auto pb-16 md:pb-20 flex gap-6;
+  }
+  
+  /* Make both headers and kanban board horizontally scrollable */
+  .horizontal-scroll {
+    @apply overflow-x-auto overflow-y-hidden;
+  }
+  
+  /* Responsive task column */
+  .task-column {
+    @apply min-w-[280px] md:min-w-[300px] max-w-[300px] flex flex-col;
   }
 }
 
