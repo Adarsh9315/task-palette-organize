@@ -6,10 +6,13 @@ import { UserProfileForm } from "@/components/molecules/UserProfileForm";
 import { NotificationSettings } from "@/components/molecules/NotificationSettings";
 import { SecuritySettings } from "@/components/molecules/SecuritySettings";
 import { ThemeSettings } from "@/components/molecules/ThemeSettings";
+import { DatabaseSettings } from "@/components/molecules/DatabaseSettings";
+import { ProjectSettings } from "@/components/molecules/ProjectSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Settings, User, Bell, Shield, Palette, Database, Layout } from "lucide-react";
 
 export const SettingsTemplate = () => {
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("project");
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -28,7 +31,7 @@ export const SettingsTemplate = () => {
             </CardHeader>
             <CardContent className="p-0">
               <Tabs 
-                defaultValue="profile" 
+                defaultValue="project" 
                 orientation="vertical" 
                 value={activeTab}
                 onValueChange={setActiveTab}
@@ -36,27 +39,45 @@ export const SettingsTemplate = () => {
               >
                 <TabsList className="flex flex-col h-auto items-stretch bg-transparent space-y-1">
                   <TabsTrigger 
-                    value="profile" 
-                    className="justify-start px-4 py-2 text-left"
+                    value="project" 
+                    className="justify-start px-4 py-2 text-left flex items-center"
                   >
+                    <Layout className="mr-2 h-4 w-4" />
+                    Project
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="database" 
+                    className="justify-start px-4 py-2 text-left flex items-center"
+                  >
+                    <Database className="mr-2 h-4 w-4" />
+                    Database
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="profile" 
+                    className="justify-start px-4 py-2 text-left flex items-center"
+                  >
+                    <User className="mr-2 h-4 w-4" />
                     Profile
                   </TabsTrigger>
                   <TabsTrigger 
                     value="theme" 
-                    className="justify-start px-4 py-2 text-left"
+                    className="justify-start px-4 py-2 text-left flex items-center"
                   >
+                    <Palette className="mr-2 h-4 w-4" />
                     Theme
                   </TabsTrigger>
                   <TabsTrigger 
                     value="notifications" 
-                    className="justify-start px-4 py-2 text-left"
+                    className="justify-start px-4 py-2 text-left flex items-center"
                   >
+                    <Bell className="mr-2 h-4 w-4" />
                     Notifications
                   </TabsTrigger>
                   <TabsTrigger 
                     value="security" 
-                    className="justify-start px-4 py-2 text-left"
+                    className="justify-start px-4 py-2 text-left flex items-center"
                   >
+                    <Shield className="mr-2 h-4 w-4" />
                     Security
                   </TabsTrigger>
                 </TabsList>
@@ -66,9 +87,42 @@ export const SettingsTemplate = () => {
           
           <Card>
             <Tabs value={activeTab} className="w-full">
+              <TabsContent value="project" className="m-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Layout className="h-5 w-5" />
+                    Project Settings
+                  </CardTitle>
+                  <CardDescription>
+                    Configure general project settings.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ProjectSettings />
+                </CardContent>
+              </TabsContent>
+              
+              <TabsContent value="database" className="m-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="h-5 w-5" />
+                    Database Configuration
+                  </CardTitle>
+                  <CardDescription>
+                    Configure database connections for your application.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DatabaseSettings />
+                </CardContent>
+              </TabsContent>
+              
               <TabsContent value="profile" className="m-0">
                 <CardHeader>
-                  <CardTitle>Profile</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Profile
+                  </CardTitle>
                   <CardDescription>
                     Update your profile information.
                   </CardDescription>
@@ -80,7 +134,10 @@ export const SettingsTemplate = () => {
               
               <TabsContent value="theme" className="m-0">
                 <CardHeader>
-                  <CardTitle>Theme</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Theme
+                  </CardTitle>
                   <CardDescription>
                     Customize your theme preferences.
                   </CardDescription>
@@ -92,7 +149,10 @@ export const SettingsTemplate = () => {
               
               <TabsContent value="notifications" className="m-0">
                 <CardHeader>
-                  <CardTitle>Notifications</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Notifications
+                  </CardTitle>
                   <CardDescription>
                     Configure how you receive notifications.
                   </CardDescription>
@@ -104,7 +164,10 @@ export const SettingsTemplate = () => {
               
               <TabsContent value="security" className="m-0">
                 <CardHeader>
-                  <CardTitle>Security</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Security
+                  </CardTitle>
                   <CardDescription>
                     Update your security settings.
                   </CardDescription>
