@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useRecoilValue } from "recoil";
 import { boardsState } from "@/recoil/atoms/boardsAtom";
@@ -19,6 +18,7 @@ type SidebarProps = {
 export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const boards = useRecoilValue(boardsState);
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [theme, setTheme] = useRecoilState(themeState);
   
@@ -29,6 +29,10 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const toggleTheme = () => {
     const newMode = theme.mode === "dark" ? "light" : "dark";
     setTheme({ ...theme, mode: newMode, useSystemTheme: false });
+  };
+
+  const handleAllBoardsClick = () => {
+    navigate('/');
   };
 
   return (
@@ -76,14 +80,19 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         )}
       </div>
 
-      {/* All boards counter */}
+      {/* All boards counter - now clickable */}
       {!collapsed && (
-        <div className="px-6 py-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">ALL BOARDS ({boardCount})</p>
+        <div 
+          onClick={handleAllBoardsClick} 
+          className="px-6 py-4 cursor-pointer hover:bg-accent/50 transition-colors"
+        >
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            ALL BOARDS ({boardCount})
+          </p>
         </div>
       )}
       
-      {/* Main sidebar content with scrolling */}
+      {/* Main sidebar content remains the same */}
       <ScrollArea className="flex-1">
         <div className={cn("py-2", collapsed && "items-center flex flex-col")}>
           {filteredBoards.length > 0 ? (
@@ -129,7 +138,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         </div>
       </ScrollArea>
 
-      {/* Theme toggle at bottom */}
+      {/* Theme toggle and other existing sections remain the same */}
       <div className="p-4">
         <div className={cn(
           "flex items-center justify-center bg-secondary/50 rounded-md p-3 mb-2",

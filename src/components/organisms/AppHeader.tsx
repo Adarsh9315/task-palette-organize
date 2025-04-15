@@ -1,7 +1,7 @@
 
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus, MoreVertical, ChevronLeft } from "lucide-react";
+import { Plus, MoreVertical } from "lucide-react";
 import { ThemeSwitcher } from "@/components/molecules/ThemeSwitcher";
 import { motion } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -54,9 +54,6 @@ export const AppHeader = ({ children }: AppHeaderProps) => {
   
   const isInBoardDetail = boardId && boardId !== 'new' && boardId !== 'edit';
   
-  // Hide the All Boards button on create/edit page since we already have a back button in those components
-  const shouldShowAllBoardsButton = !isCreateBoardPage && !isEditBoardPage;
-  
   return (
     <motion.header 
       initial={{ opacity: 0, y: -10 }}
@@ -69,20 +66,6 @@ export const AppHeader = ({ children }: AppHeaderProps) => {
     >
       <div className="flex items-center gap-2 overflow-hidden">
         {children}
-        
-        {shouldShowAllBoardsButton && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            asChild 
-            className={cn("mr-2 items-center", isMobile ? "hidden" : "flex")}
-          >
-            <Link to="/">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              All Boards
-            </Link>
-          </Button>
-        )}
         
         <h1 className="text-lg font-bold truncate">
           {currentBoard?.title || "Platform Launch"}
@@ -137,3 +120,4 @@ export const AppHeader = ({ children }: AppHeaderProps) => {
     </motion.header>
   );
 };
+
