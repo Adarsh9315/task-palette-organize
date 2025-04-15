@@ -23,7 +23,7 @@ export async function getColumns(boardId: string): Promise<Column[]> {
   }));
 }
 
-export async function createColumn(column: Omit<Column, 'id'>, boardId: string): Promise<Column> {
+export async function createColumn(column: Omit<Column, 'id'> & { columnOrder?: number }, boardId: string): Promise<Column> {
   const { data, error } = await supabase
     .from('columns')
     .insert([{

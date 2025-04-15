@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { RecoilRoot, useRecoilValue } from "recoil";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { RecoilRoot } from "recoil";
 import Index from "./pages/Index";
 import BoardDetail from "./pages/BoardDetail";
 import BoardForm from "./pages/BoardForm";
@@ -21,7 +21,7 @@ import ProtectedRoute from "./components/molecules/ProtectedRoute";
 const queryClient = new QueryClient();
 
 // Theme Provider component to apply theme changes
-const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+const ThemeProvider = ({ children }) => {
   const theme = useRecoilValue(themeState);
   
   useEffect(() => {
@@ -34,7 +34,7 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Listen for system theme changes
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const handleChange = (e: MediaQueryListEvent) => {
+      const handleChange = (e) => {
         root.classList.toggle("dark", e.matches);
       };
       
@@ -65,38 +65,40 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Move ThemeProvider inside AppContent to ensure it has access to Recoil
 const AppContent = () => {
+  // Import useRecoilValue here so it's used within RecoilRoot
+  const { useRecoilValue } = require('recoil');
+  
   return (
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="bottom-right" />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-              <Route index element={<Index />} />
-              <Route path="/board/:boardId" element={<BoardDetail />} />
-              <Route path="/board/new" element={<BoardForm />} />
-              <Route path="/board/edit/:boardId" element={<BoardForm />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/about" element={<About />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="bottom-right" />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                <Route index element={<Index />} />
+                <Route path="/board/:boardId" element={<BoardDetail />} />
+                <Route path="/board/new" element={<BoardForm />} />
+                <Route path="/board/edit/:boardId" element={<BoardForm />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/about" element={<About />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 };
 
 const App = () => (
   <RecoilRoot>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </QueryClientProvider>
+    <AppContent />
   </RecoilRoot>
 );
 
