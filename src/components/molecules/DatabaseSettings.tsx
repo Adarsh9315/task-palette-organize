@@ -44,8 +44,15 @@ export function DatabaseSettings() {
     setIsLoading(true);
     
     try {
-      // Store config in Recoil state
-      setDbConfig(values);
+      // Store config in Recoil state - ensure all required fields are present
+      setDbConfig({
+        dbType: values.dbType,
+        host: values.host,
+        port: values.port,
+        dbName: values.dbName,
+        username: values.username,
+        password: values.password
+      });
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));

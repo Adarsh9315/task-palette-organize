@@ -37,8 +37,11 @@ export function ProjectSettings() {
     setIsLoading(true);
     
     try {
-      // Store settings in Recoil state
-      setProjectSettings(values);
+      // Store settings in Recoil state - ensure all required fields are present
+      setProjectSettings({
+        projectName: values.projectName,
+        description: values.description
+      });
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
