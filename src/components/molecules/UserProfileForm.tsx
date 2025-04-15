@@ -29,7 +29,7 @@ type Profile = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
-  bio?: string | null; // Make bio optional since it might not exist in the DB yet
+  bio: string | null; // Make bio a proper field, not optional with ?
 };
 
 export function UserProfileForm() {
@@ -65,7 +65,7 @@ export function UserProfileForm() {
         form.reset({
           name: data.full_name || "",
           email: user.email || "",
-          bio: data.bio || "", // Safely access bio even if it doesn't exist
+          bio: data.bio || "", // Safely access bio
         });
       } catch (error: any) {
         console.error("Error fetching profile:", error);
@@ -133,7 +133,6 @@ export function UserProfileForm() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Profile</h3>
           <p className="text-sm text-muted-foreground">
             This is how others will see you on the platform.
           </p>

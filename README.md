@@ -1,207 +1,275 @@
 
-# TaskPalette - Trello-like Kanban Board App
+# TaskPalette - Trello-like Kanban Board Application
 
-## Project Overview
+## Overview
 
-TaskPalette is a comprehensive Kanban board application inspired by Trello. It provides a feature-rich task management system allowing users to create boards, manage tasks with drag-and-drop functionality, customize themes, and configure user profiles.
+TaskPalette is a comprehensive kanban board application inspired by Trello, designed to help users manage tasks and projects efficiently. Built with modern web technologies and featuring a sleek UI, TaskPalette offers a responsive design that works seamlessly across devices.
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Running the Application](#running-the-application)
-- [Features Guide](#features-guide)
-  - [Dashboard & Navigation](#dashboard--navigation)
-  - [Managing Boards](#managing-boards)
-  - [Working with Tasks](#working-with-tasks)
-  - [Theme Customization](#theme-customization)
-  - [Settings](#settings)
-- [Project Structure](#project-structure)
-- [Technical Details](#technical-details)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage Guide](#usage-guide)
+- [Backend Integration](#backend-integration)
+- [Authentication](#authentication)
+- [Theme System](#theme-system)
+- [Contributing](#contributing)
 - [Troubleshooting](#troubleshooting)
 
-## Getting Started
+## Features
 
-### Prerequisites
+### Core Functionality
+- **Kanban Board Management**: Create, view, edit, and delete boards
+- **Task Management**: Create tasks with titles, descriptions, priorities, and due dates
+- **Drag and Drop Interface**: Move tasks between columns (To Do, In Progress, Done)
+- **Responsive Design**: Seamless experience on desktop and mobile devices
 
-Before running TaskPalette locally, ensure you have the following installed:
+### User Experience
+- **Custom Themes**: Toggle between light/dark mode and select from multiple color schemes
+- **Board Navigation**: Easily filter and search boards
+- **Collapsible Sidebar**: Optimized for both desktop and mobile viewing
+- **Authentication**: Secure user authentication with profile management
+- **Settings Management**: Multiple settings tabs for different application aspects
 
-- [Node.js](https://nodejs.org/) (version 16.x or higher)
-- npm (comes with Node.js) or [Yarn](https://yarnpkg.com/) or [Bun](https://bun.sh/) (recommended)
+### Settings Management
+- **Profile Settings**: Update personal information and user avatar
+- **Theme Customization**: Change UI appearance and color schemes
+- **Database Settings**: Configure database connections
+- **Security Settings**: Update password and manage active sessions
+- **Notification Preferences**: Control how and when notifications are received
+- **Project Settings**: Manage general project configurations
 
-### Installation
+## Technology Stack
 
-1. **Clone the repository**:
+### Frontend
+- **React**: UI library for building component-based interfaces
+- **TypeScript**: Static typing for enhanced code quality and developer experience
+- **Recoil**: State management for predictable state handling
+- **React Router**: Declarative routing for single-page application
+- **React Hook Form**: Form validation with Zod schema validation
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development
+- **shadcn/ui**: High-quality UI component library
+- **Framer Motion**: Animation library for smooth transitions
+- **react-beautiful-dnd**: Drag and drop functionality for task management
 
-```bash
-git clone <repository-url>
-cd taskpalette
-```
+### Backend
+- **Supabase**: Backend-as-a-service for:
+  - PostgreSQL Database: Storing boards, tasks, columns, and user profiles
+  - Authentication: User registration, login, and session management
+  - Row-Level Security: Ensuring data privacy and security
+  - Storage: Image and file uploads (for avatars, etc.)
 
-2. **Install dependencies**:
+## Architecture
 
-With npm:
-```bash
-npm install
-```
-
-With Yarn:
-```bash
-yarn install
-```
-
-With Bun:
-```bash
-bun install
-```
-
-### Running the Application
-
-1. **Start the development server**:
-
-With npm:
-```bash
-npm run dev
-```
-
-With Yarn:
-```bash
-yarn dev
-```
-
-With Bun:
-```bash
-bun dev
-```
-
-2. **Access the application**:
-   
-Open your browser and navigate to [http://localhost:8080](http://localhost:8080)
-
-## Features Guide
-
-### Dashboard & Navigation
-
-- **Home Page**: Access all your boards from the main dashboard
-- **Sidebar**: Navigate between boards and access application settings
-  - Click "ALL BOARDS" at the top to return to the dashboard
-  - Use the toggle at the bottom to collapse/expand the sidebar
-- **Board Search**: Filter boards using the search input in the sidebar
-- **Theme Toggle**: Switch between light and dark mode using the toggle in the sidebar
-
-### Managing Boards
-
-- **View Boards**: Click on a board card or its name in the sidebar to view it
-- **Create Board**: 
-  1. Click the "Create New Board" button in the sidebar
-  2. Fill in the board details form (title, description, etc.)
-  3. Click "Create Board"
-- **Edit Board**: 
-  1. Open the board you want to edit
-  2. Click the vertical dots menu (⋮) in the top-right corner
-  3. Select "Edit Current Board"
-  4. Update the board details and click "Save Changes"
-- **Delete Board**:
-  1. Open the board you want to delete
-  2. Click the vertical dots menu (⋮) in the top-right corner
-  3. Select "Delete Board" (currently notifies with a toast that deletion is not implemented)
-
-### Working with Tasks
-
-- **View Tasks**: Tasks are displayed in columns based on their status (To Do, In Progress, Done)
-- **Create Task**:
-  1. Open a board
-  2. Click the "+ Add New Task" button in the header
-  3. Fill in the task details (title, description, priority, due date)
-  4. Click "Create Task"
-- **Edit Task**:
-  1. Click on a task card to open it
-  2. Update the task details
-  3. Click "Save Changes"
-- **Move Tasks**: Drag and drop tasks between columns to change their status
-  - You can also change status from the task edit modal
-
-### Theme Customization
-
-- **Toggle Dark/Light Mode**:
-  - Use the theme toggle in the sidebar
-  - Go to Settings > Theme to configure additional theme options
-- **Color Schemes**:
-  - Access the Settings page
-  - Choose from available color schemes (Blue, Green, Purple, Orange)
-  - Enable/disable system preference detection
-
-### Settings
-
-- **Profile Settings**: Update user profile information
-- **Theme Settings**: Customize application appearance
-- **Notification Preferences**: Configure how you receive notifications
-- **Security Settings**: Update password and security preferences
-
-## Project Structure
+TaskPalette follows an atomic design methodology for its components:
 
 ```
 src/
 ├── components/
-│   ├── atoms/         # Basic components (Badge, Button, etc.)
-│   ├── molecules/     # Combinations of atoms (TaskCard, BoardCard, etc.)
-│   ├── organisms/     # Larger components (TaskList, BoardList, etc.)
-│   ├── templates/     # Page layouts (BoardTemplate, SettingsTemplate, etc.)
-│   └── ui/            # shadcn/ui components
-├── hooks/             # Custom React hooks
-├── lib/               # Utility functions
-├── pages/             # Page components
-├── recoil/
-│   ├── atoms/         # Recoil atoms for state management
-│   └── selectors/     # Recoil selectors for derived state
-└── main.tsx           # Application entry point
+│   ├── atoms/       # Basic building blocks (Badge, Button, etc.)
+│   ├── molecules/   # Combinations of atoms (TaskCard, BoardCard, etc.)
+│   ├── organisms/   # Complex UI sections (TaskList, BoardList, etc.)
+│   ├── templates/   # Page layouts (BoardTemplate, SettingsTemplate)
+│   └── ui/          # shadcn/ui components
+├── contexts/        # React contexts for global state
+├── hooks/           # Custom React hooks
+├── lib/             # Utility functions
+├── pages/           # Page components
+├── recoil/          # State management
+│   ├── atoms/       # Recoil atoms
+│   └── selectors/   # Computed values
+├── integrations/    # Third-party service integrations
+│   └── supabase/    # Supabase client and types
+└── types/           # TypeScript type definitions
 ```
 
-## Technical Details
+### State Management
+The application uses Recoil for state management, separating concerns into:
+- User state (authentication, profiles)
+- UI state (theme, sidebar)
+- Data state (boards, tasks, columns)
 
-TaskPalette is built with:
+### Data Flow
+1. User interactions trigger Recoil state changes or API calls
+2. API calls communicate with Supabase backend
+3. State updates trigger UI re-renders
+4. Row-Level Security ensures users only access their own data
 
-- **React** with **TypeScript** for the UI
-- **Recoil** for state management
-- **React Router** for navigation
-- **React Hook Form** with **Zod** for form validation
-- **Tailwind CSS** for styling
-- **shadcn/ui** for UI components
-- **Framer Motion** for animations
-- **react-beautiful-dnd** for drag-and-drop functionality
+## Installation
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm, yarn, or bun package manager
+- Supabase account (for backend services)
+
+### Setup Process
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd taskpalette
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   bun install
+   ```
+
+3. Create a .env file with required environment variables:
+   ```
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   bun dev
+   ```
+
+## Configuration
+
+### Supabase Setup
+1. Create a new Supabase project
+2. Set up the following tables:
+   - profiles (user profiles)
+   - boards (kanban boards)
+   - columns (board columns)
+   - tasks (tasks within columns)
+
+3. Enable authentication services
+4. Set up storage buckets for file uploads
+5. Configure Row Level Security policies for data privacy
+
+### Environment Variables
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+## Usage Guide
+
+### Authentication
+- Sign up with email/password
+- Log in to access your boards and profile
+- Update profile information in Settings
+
+### Board Management
+1. **Create a Board**:
+   - Click "Create New Board" in the sidebar
+   - Enter board title and description
+   - Click "Create Board"
+
+2. **Manage Tasks**:
+   - Click "+ Add New Task" to create tasks
+   - Drag tasks between columns to update status
+   - Click on a task to edit details
+
+3. **Edit Board**:
+   - Use the dropdown menu (⋮) to access board options
+   - Select "Edit Current Board" to modify board details
+
+### Settings
+Access settings via the sidebar to manage:
+- Profile information
+- Theme preferences
+- Database configurations
+- Security settings
+- Notification preferences
+- Project settings
+
+## Backend Integration
+
+### Database Schema
+TaskPalette uses the following key tables in Supabase:
+
+1. **profiles**
+   - id (UUID, references auth.users)
+   - full_name (text)
+   - avatar_url (text)
+   - bio (text)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+2. **boards**
+   - id (UUID)
+   - title (text)
+   - description (text)
+   - user_id (UUID, references auth.users)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+3. **columns**
+   - id (UUID)
+   - title (text)
+   - board_id (UUID, references boards)
+   - position (integer)
+   - created_at (timestamp)
+
+4. **tasks**
+   - id (UUID)
+   - title (text)
+   - description (text)
+   - column_id (UUID, references columns)
+   - position (integer)
+   - priority (text)
+   - due_date (timestamp)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+### Row Level Security
+All tables implement Row Level Security to ensure users can only:
+- View their own boards and tasks
+- Edit their own profile information
+- Create content associated with their user ID
+
+## Authentication
+
+TaskPalette uses Supabase Authentication with:
+- Email/password authentication
+- JWT token-based session management
+- Protected routes requiring authentication
+- Profile management connected to auth.users
+
+## Theme System
+
+TaskPalette features a comprehensive theme system with:
+- Light/Dark mode toggle
+- Multiple color schemes (Blue, Green, Purple, Orange)
+- System theme detection
+- Theme persistence through local storage
+- Smooth theme transitions
+
+## Contributing
+
+We welcome contributions! To contribute:
+1. Fork the repository
+2. Create a feature branch
+3. Make changes following the project structure
+4. Submit a pull request with descriptive comments
 
 ## Troubleshooting
 
 ### Common Issues
+- **Authentication Problems**: Ensure Supabase authentication is properly set up
+- **Data Not Loading**: Check Row Level Security policies in Supabase
+- **UI Display Issues**: Verify correct theme configuration
+- **Task Drag Issues**: Ensure react-beautiful-dnd is properly implemented
 
-- **Build Errors**: If you encounter build errors, try:
-  ```bash
-  npm clean-install
-  # or
-  yarn cache clean && yarn install
-  # or
-  bun install --force
-  ```
+### Debugging
+- Check browser console for errors
+- Verify network requests to Supabase
+- Ensure environment variables are correctly set
 
-- **White Screen**: If the application shows a white screen:
-  - Check browser console for errors
-  - Ensure all dependencies are correctly installed
-  - Restart the development server
+---
 
-### Browser Compatibility
-
-TaskPalette works best in modern browsers:
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## Contributing
-
-We welcome contributions! Please see our contributing guidelines for details.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
+TaskPalette is developed with ♥ by the TaskPalette team.
