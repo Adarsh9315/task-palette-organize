@@ -59,7 +59,11 @@ export function UserProfileForm() {
           .eq("id", user.id)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching profile:", error);
+          toast.error("Failed to load profile");
+          return;
+        }
         
         // Make sure the data has the correct shape
         const profileData: Profile = {
