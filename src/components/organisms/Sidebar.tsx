@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useRecoilValue } from "recoil";
 import { boardsState } from "@/recoil/atoms/boardsAtom";
-import { Layout, Plus, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Layout, Plus, Sun, Moon, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useRecoilState } from "recoil";
@@ -139,7 +139,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
       </ScrollArea>
 
       {/* Theme toggle and other existing sections remain the same */}
-      <div className="p-4">
+      <div className="p-4 mt-auto">
         <div className={cn(
           "flex items-center justify-center bg-secondary/50 rounded-md p-3 mb-2",
           collapsed ? "flex-col" : "flex-row"
@@ -164,6 +164,20 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
           </div>
           {!collapsed && <Moon size={16} className="text-muted-foreground" />}
         </div>
+        
+        {/* Settings button */}
+        <Link 
+          to="/settings"
+          className={cn(
+            "flex items-center px-4 py-3 mx-2 rounded-r-full text-sm transition-colors text-muted-foreground hover:bg-accent hover:text-foreground",
+            collapsed ? "justify-center w-10 h-10" : "w-[calc(100%-16px)]"
+          )}
+        >
+          <Settings size={collapsed ? 20 : 16} className={cn(!collapsed && "mr-3")} />
+          {!collapsed && (
+            <span className="truncate font-medium">Settings</span>
+          )}
+        </Link>
         
         {collapsed && (
           <Button
