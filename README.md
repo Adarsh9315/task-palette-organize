@@ -3,193 +3,205 @@
 
 ## Project Overview
 
-TaskPalette is a comprehensive Kanban board application inspired by Trello. It provides a feature-rich task management system allowing users to create boards, manage tasks with drag-and-drop functionality, customize themes, and configure user profiles. The app follows atomic design principles with a modern UI/UX approach.
+TaskPalette is a comprehensive Kanban board application inspired by Trello. It provides a feature-rich task management system allowing users to create boards, manage tasks with drag-and-drop functionality, customize themes, and configure user profiles.
 
-## Tech Stack
+## Table of Contents
 
-- **Frontend**:
-  - React with TypeScript
-  - Recoil for state management
-  - React Router for navigation
-  - React Hook Form with Zod for form validation
-  - Tailwind CSS for styling
-  - shadcn/ui for UI components
-  - Framer Motion for animations
-  - react-beautiful-dnd for drag-and-drop functionality
-  - Lucide React for icons
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Running the Application](#running-the-application)
+- [Features Guide](#features-guide)
+  - [Dashboard & Navigation](#dashboard--navigation)
+  - [Managing Boards](#managing-boards)
+  - [Working with Tasks](#working-with-tasks)
+  - [Theme Customization](#theme-customization)
+  - [Settings](#settings)
+- [Project Structure](#project-structure)
+- [Technical Details](#technical-details)
+- [Troubleshooting](#troubleshooting)
 
-## Features
+## Getting Started
 
-### Kanban Board Functionality
-- Create, edit, and delete boards
-- Manage tasks within columns (To Do, In Progress, Done)
-- Drag-and-drop tasks between columns
-- Task properties including title, description, status, priority, and due date
-- Responsive design for desktop and mobile
+### Prerequisites
 
-### UI Animations & Transitions
-- Smooth transitions when moving tasks between columns
-- Hover effects on cards and interactive elements
-- Task expansion animations
-- Animated notifications using Sonner
+Before running TaskPalette locally, ensure you have the following installed:
 
-### Color Theme Switching
-- Light and dark mode support
-- Custom color themes for boards
-- System preference detection
+- [Node.js](https://nodejs.org/) (version 16.x or higher)
+- npm (comes with Node.js) or [Yarn](https://yarnpkg.com/) or [Bun](https://bun.sh/) (recommended)
 
-### User Management & Settings
-- User profile management
-- Theme preferences
-- Notification settings
-- Password and security settings
-- Session management
+### Installation
 
-### Enhanced User Experience
-- Task priority levels (low, medium, high)
-- Due date management with calendar picker
-- User-friendly interface with intuitive navigation
-- Mobile responsive design
+1. **Clone the repository**:
 
-## Component Breakdown (Atomic Design)
-
-### Atoms
-Small, basic building blocks of the application:
-- **Badge**: Visual indicator for task status and priority
-- **Button**: Interactive element for actions
-- **Input**: Form input fields
-- **Avatar**: User profile image display
-
-### Molecules
-Groups of atoms that work together as a unit:
-- **TaskCard**: Displays task information with actions
-- **BoardCard**: Displays board information with actions
-- **TaskForm**: Form for creating and editing tasks
-- **BoardForm**: Form for creating and editing boards
-- **UserProfileForm**: Form for managing user profile
-- **ThemeSettings**: Component for managing theme preferences
-
-### Organisms
-Groups of molecules that form a relatively complex section:
-- **AppHeader**: Application header with navigation and user menu
-- **TaskList**: Displays and organizes tasks by status
-- **BoardList**: Displays all boards
-- **CreateTaskModal**: Modal for creating tasks
-- **EditTaskModal**: Modal for editing tasks
-
-### Templates
-Page layouts that place components in a structure:
-- **DashboardTemplate**: Layout for the main dashboard
-- **BoardTemplate**: Layout for board details
-- **BoardFormTemplate**: Layout for board creation/editing
-- **SettingsTemplate**: Layout for settings pages
-
-## State Management with Recoil
-
-The application uses Recoil for state management with the following structure:
-
-### Atoms
-Pieces of state that components can subscribe to:
-- **boardsState**: Stores the list of boards
-- **tasksState**: Stores the list of tasks
-- **themeState**: Manages the application theme
-- **modalState**: Manages the state of modals (create/edit tasks)
-
-### Selectors
-Pure functions that derive data from atoms:
-- **boardByIdSelector**: Gets a specific board by ID
-- **filteredTasksSelector**: Filters tasks by board ID
-- **tasksByStatusSelector**: Gets tasks by board ID and status
-
-## Animations & Transitions
-
-- **Drag and Drop**: Smooth animations when moving tasks between columns
-- **Hover Effects**: Scale and shadow changes on cards and buttons
-- **Motion Animations**: Using Framer Motion for entrance and exit animations
-- **Toast Notifications**: Animated notifications for user actions
-
-## Color Theme System
-
-- **Light/Dark Mode**: Toggle between light and dark themes
-- **Color Schemes**: Multiple color options (Blue, Green, Purple, Orange)
-- **System Preference**: Option to use system color scheme preference
-- **Board Themes**: Individual board color theming
-
-## Installation and Setup
-
-1. Clone the repository:
 ```bash
 git clone <repository-url>
-```
-
-2. Navigate to the project directory:
-```bash
 cd taskpalette
 ```
 
-3. Install dependencies:
+2. **Install dependencies**:
+
+With npm:
 ```bash
 npm install
 ```
 
-4. Start the development server:
+With Yarn:
+```bash
+yarn install
+```
+
+With Bun:
+```bash
+bun install
+```
+
+### Running the Application
+
+1. **Start the development server**:
+
+With npm:
 ```bash
 npm run dev
 ```
 
-5. Open your browser and navigate to `http://localhost:5173`
+With Yarn:
+```bash
+yarn dev
+```
+
+With Bun:
+```bash
+bun dev
+```
+
+2. **Access the application**:
+   
+Open your browser and navigate to [http://localhost:8080](http://localhost:8080)
+
+## Features Guide
+
+### Dashboard & Navigation
+
+- **Home Page**: Access all your boards from the main dashboard
+- **Sidebar**: Navigate between boards and access application settings
+  - Click "ALL BOARDS" at the top to return to the dashboard
+  - Use the toggle at the bottom to collapse/expand the sidebar
+- **Board Search**: Filter boards using the search input in the sidebar
+- **Theme Toggle**: Switch between light and dark mode using the toggle in the sidebar
+
+### Managing Boards
+
+- **View Boards**: Click on a board card or its name in the sidebar to view it
+- **Create Board**: 
+  1. Click the "Create New Board" button in the sidebar
+  2. Fill in the board details form (title, description, etc.)
+  3. Click "Create Board"
+- **Edit Board**: 
+  1. Open the board you want to edit
+  2. Click the vertical dots menu (⋮) in the top-right corner
+  3. Select "Edit Current Board"
+  4. Update the board details and click "Save Changes"
+- **Delete Board**:
+  1. Open the board you want to delete
+  2. Click the vertical dots menu (⋮) in the top-right corner
+  3. Select "Delete Board" (currently notifies with a toast that deletion is not implemented)
+
+### Working with Tasks
+
+- **View Tasks**: Tasks are displayed in columns based on their status (To Do, In Progress, Done)
+- **Create Task**:
+  1. Open a board
+  2. Click the "+ Add New Task" button in the header
+  3. Fill in the task details (title, description, priority, due date)
+  4. Click "Create Task"
+- **Edit Task**:
+  1. Click on a task card to open it
+  2. Update the task details
+  3. Click "Save Changes"
+- **Move Tasks**: Drag and drop tasks between columns to change their status
+  - You can also change status from the task edit modal
+
+### Theme Customization
+
+- **Toggle Dark/Light Mode**:
+  - Use the theme toggle in the sidebar
+  - Go to Settings > Theme to configure additional theme options
+- **Color Schemes**:
+  - Access the Settings page
+  - Choose from available color schemes (Blue, Green, Purple, Orange)
+  - Enable/disable system preference detection
+
+### Settings
+
+- **Profile Settings**: Update user profile information
+- **Theme Settings**: Customize application appearance
+- **Notification Preferences**: Configure how you receive notifications
+- **Security Settings**: Update password and security preferences
 
 ## Project Structure
 
 ```
 src/
 ├── components/
-│   ├── atoms/         # Basic components
-│   ├── molecules/     # Combinations of atoms
-│   ├── organisms/     # Larger components
-│   ├── templates/     # Page layouts
+│   ├── atoms/         # Basic components (Badge, Button, etc.)
+│   ├── molecules/     # Combinations of atoms (TaskCard, BoardCard, etc.)
+│   ├── organisms/     # Larger components (TaskList, BoardList, etc.)
+│   ├── templates/     # Page layouts (BoardTemplate, SettingsTemplate, etc.)
 │   └── ui/            # shadcn/ui components
-├── lib/
-│   └── utils.ts       # Utility functions
+├── hooks/             # Custom React hooks
+├── lib/               # Utility functions
 ├── pages/             # Page components
 ├── recoil/
-│   ├── atoms/         # Recoil atoms
-│   └── selectors/     # Recoil selectors
+│   ├── atoms/         # Recoil atoms for state management
+│   └── selectors/     # Recoil selectors for derived state
 └── main.tsx           # Application entry point
 ```
 
-## Responsive Design
+## Technical Details
 
-The application is fully responsive and adapts to different screen sizes:
-- **Desktop**: Full layout with multi-column views
-- **Tablet**: Adjusted spacing and layouts
-- **Mobile**: Stacked layouts with appropriate touch targets and mobile menu
+TaskPalette is built with:
 
-## Future Enhancements
+- **React** with **TypeScript** for the UI
+- **Recoil** for state management
+- **React Router** for navigation
+- **React Hook Form** with **Zod** for form validation
+- **Tailwind CSS** for styling
+- **shadcn/ui** for UI components
+- **Framer Motion** for animations
+- **react-beautiful-dnd** for drag-and-drop functionality
 
-- Real-time collaboration using WebSockets
-- File attachments for tasks
-- Advanced filtering and search
-- Task dependencies and sub-tasks
-- Custom fields for tasks
-- Time tracking
-- Integration with calendar applications
-- Activity logs and reports
-- Advanced user roles and permissions
-- Board templates
+## Troubleshooting
 
-## Change Log
+### Common Issues
 
-### Version 2.0.0
-- Added drag-and-drop functionality for tasks
-- Implemented theme switching (light/dark mode)
-- Added user profile and settings pages
-- Enhanced task cards with priority, due dates
-- Added animations and transitions
-- Improved mobile responsiveness
+- **Build Errors**: If you encounter build errors, try:
+  ```bash
+  npm clean-install
+  # or
+  yarn cache clean && yarn install
+  # or
+  bun install --force
+  ```
 
-### Version 1.0.0
-- Initial release with core functionality
-- Board and task management
-- Responsive design
-- Form validation
+- **White Screen**: If the application shows a white screen:
+  - Check browser console for errors
+  - Ensure all dependencies are correctly installed
+  - Restart the development server
+
+### Browser Compatibility
+
+TaskPalette works best in modern browsers:
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Contributing
+
+We welcome contributions! Please see our contributing guidelines for details.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
