@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRecoilState } from "recoil";
 import { boardsState } from "@/recoil/atoms/boardsAtom";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { deleteBoard as deleteBoardService } from "@/services/boardService";
 
 export const useDeleteBoard = () => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -13,13 +13,8 @@ export const useDeleteBoard = () => {
     try {
       setIsDeleting(true);
       
-      // Delete from Supabase
-      const { error } = await supabase
-        .from('boards')
-        .delete()
-        .eq('id', boardId);
-      
-      if (error) throw error;
+      // Delete from Supabase using the service
+      await deleteBoardService(boardId);
       
       // Update local state
       setBoards(boards.filter((board) => board.id !== boardId));

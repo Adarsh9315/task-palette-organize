@@ -6,8 +6,6 @@ import { v4 as uuidv4 } from '@/lib/uuid';
 // Get all boards for the current user
 export async function getBoards(): Promise<Board[]> {
   try {
-    // For now, we'll return some mock data
-    // In a real app, you would fetch from Supabase
     const { data, error } = await supabase
       .from('boards')
       .select('*');
@@ -59,6 +57,12 @@ export async function getBoardById(id: string): Promise<Board | null> {
 // Create a new board
 export async function createBoard(board: Omit<Board, "id">): Promise<Board> {
   try {
+    const { data: userData } = await supabase.auth.getUser();
+    
+    if (!userData || !userData.user) {
+      throw new Error("Authentication required");
+    }
+    
     const { data, error } = await supabase
       .from('boards')
       .insert([
@@ -66,6 +70,7 @@ export async function createBoard(board: Omit<Board, "id">): Promise<Board> {
           title: board.title,
           description: board.description,
           theme: board.theme || 'default',
+          user_id: userData.user.id
         }
       ])
       .select()
