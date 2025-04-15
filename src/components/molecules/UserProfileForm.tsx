@@ -29,6 +29,7 @@ type Profile = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  bio?: string | null; // Make bio optional since it might not exist in the DB yet
 };
 
 export function UserProfileForm() {
@@ -64,7 +65,7 @@ export function UserProfileForm() {
         form.reset({
           name: data.full_name || "",
           email: user.email || "",
-          bio: data.bio || "",
+          bio: data.bio || "", // Safely access bio even if it doesn't exist
         });
       } catch (error: any) {
         console.error("Error fetching profile:", error);
