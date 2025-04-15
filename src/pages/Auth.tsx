@@ -6,37 +6,68 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Loader } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const Auth = () => {
   const { user, signIn, signUp, isLoading } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
+  const navigate = useNavigate();
 
   if (user) {
     return <Navigate to="/" />;
   }
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const signInSchema = z.object({
+    email: z.string().email("Please enter a valid email"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+  });
+
+  const signUpSchema = z.object({
+    fullName: z.string().min(2, "Full name must be at least 2 characters"),
+    email: z.string().email("Please enter a valid email"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+  });
+
+  type SignInFormValues = z.infer<typeof signInSchema>;
+  type SignUpFormValues = z.infer<typeof signUpSchema>;
+
+  const signInForm = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const signUpForm = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+    },
+  });
+
+  const handleSignIn = async (values: SignInFormValues) => {
     try {
-      await signIn(email, password);
-    } catch (error: any) {
-      setError(error.message);
+      await signIn(values.email, values.password);
+      navigate('/');
+    } catch (error) {
+      // Error is handled in the AuthContext
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const handleSignUp = async (values: SignUpFormValues) => {
     try {
-      await signUp(email, password, fullName);
-    } catch (error: any) {
-      setError(error.message);
+      await signUp(values.email, values.password, values.fullName);
+      setActiveTab("signin");
+    } catch (error) {
+      // Error is handled in the AuthContext
     }
   };
 
@@ -48,44 +79,51 @@ const Auth = () => {
           <CardDescription className="text-center">Manage your projects and tasks</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "signin" | "signup")}>
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="john@example.com" 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)}
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      placeholder="••••••••" 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)}
-                      required 
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="text-sm font-medium text-destructive">
-                      {error}
-                    </div>
-                  )}
-
+              <Form {...signInForm}>
+                <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4">
+                  <FormField
+                    control={signInForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="john@example.com" 
+                            type="email"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={signInForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password" 
+                            placeholder="••••••••" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <Button className="w-full" type="submit" disabled={isLoading}>
                     {isLoading ? (
                       <>
@@ -96,52 +134,66 @@ const Auth = () => {
                       "Sign In"
                     )}
                   </Button>
-                </div>
-              </form>
+                </form>
+              </Form>
             </TabsContent>
 
             <TabsContent value="signup">
-              <form onSubmit={handleSignUp}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input 
-                      id="fullName" 
-                      placeholder="John Doe" 
-                      value={fullName} 
-                      onChange={(e) => setFullName(e.target.value)}
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newEmail">Email</Label>
-                    <Input 
-                      id="newEmail" 
-                      type="email" 
-                      placeholder="john@example.com" 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)}
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">Password</Label>
-                    <Input 
-                      id="newPassword" 
-                      type="password" 
-                      placeholder="••••••••" 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)}
-                      required 
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="text-sm font-medium text-destructive">
-                      {error}
-                    </div>
-                  )}
-
+              <Form {...signUpForm}>
+                <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
+                  <FormField
+                    control={signUpForm.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="John Doe"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={signUpForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="email" 
+                            placeholder="john@example.com" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={signUpForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password" 
+                            placeholder="••••••••" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <Button className="w-full" type="submit" disabled={isLoading}>
                     {isLoading ? (
                       <>
@@ -152,8 +204,8 @@ const Auth = () => {
                       "Create Account"
                     )}
                   </Button>
-                </div>
-              </form>
+                </form>
+              </Form>
             </TabsContent>
           </Tabs>
         </CardContent>

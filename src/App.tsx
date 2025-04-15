@@ -18,7 +18,14 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/molecules/ProtectedRoute";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30000,
+    },
+  },
+});
 
 // Theme Provider component to apply theme changes
 const ThemeProvider = ({ children }) => {

@@ -8,7 +8,8 @@ export async function getBoards(): Promise<Board[]> {
   try {
     const { data, error } = await supabase
       .from('boards')
-      .select('*');
+      .select('*')
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 
