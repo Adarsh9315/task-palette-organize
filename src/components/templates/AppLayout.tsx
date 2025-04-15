@@ -1,23 +1,23 @@
 
 import { useState, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, Link } from "react-router-dom";
 import { Sidebar } from "@/components/organisms/Sidebar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronLeft } from "lucide-react";
 import { AppHeader } from "@/components/organisms/AppHeader";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const AppLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const location = useLocation();
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const isMobile = useIsMobile();
   
   // Collapse sidebar by default on mobile
   useEffect(() => {
-    setSidebarCollapsed(!isDesktop);
-  }, [isDesktop]);
+    setSidebarCollapsed(isMobile);
+  }, [isMobile]);
 
   // Close mobile sidebar when route changes
   useEffect(() => {
@@ -25,7 +25,7 @@ export const AppLayout = () => {
   }, [location.pathname]);
 
   const toggleSidebar = () => {
-    if (isDesktop) {
+    if (!isMobile) {
       setSidebarCollapsed(!sidebarCollapsed);
     } else {
       setMobileSidebarOpen(!mobileSidebarOpen);
@@ -36,11 +36,11 @@ export const AppLayout = () => {
     <div className="flex min-h-screen w-full bg-background overflow-hidden">
       {/* Desktop sidebar */}
       <div className={cn(
-        "fixed top-0 h-full z-30 transition-all duration-300 ease-in-out",
-        isDesktop && !sidebarCollapsed ? "translate-x-0 w-64" : "w-0 -translate-x-full",
-        isDesktop && sidebarCollapsed && "w-20 translate-x-0"
+        "fixed top-0 h-full z-40 transition-all duration-300 ease-in-out",
+        !isMobile && !sidebarCollapsed ? "translate-x-0 w-64" : "w-0 -translate-x-full",
+        !isMobile && sidebarCollapsed && "w-20 translate-x-0"
       )}>
-        {(isDesktop || mobileSidebarOpen) && (
+        {(!isMobile || mobileSidebarOpen) && (
           <Sidebar 
             collapsed={sidebarCollapsed} 
             onToggle={toggleSidebar} 
@@ -49,9 +49,9 @@ export const AppLayout = () => {
       </div>
       
       {/* Mobile sidebar overlay - shown when mobileSidebarOpen is true */}
-      {!isDesktop && mobileSidebarOpen && (
+      {isMobile && mobileSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          className="fixed inset-0 bg-black/50 z-40" 
           onClick={() => setMobileSidebarOpen(false)}
         >
           <div 
@@ -77,10 +77,10 @@ export const AppLayout = () => {
       {/* Main content */}
       <div className={cn(
         "flex-1 flex flex-col w-full transition-all duration-300 ease-in-out",
-        isDesktop && !sidebarCollapsed ? "lg:ml-64" : "",
-        isDesktop && sidebarCollapsed ? "lg:ml-20" : "",
+        !isMobile && !sidebarCollapsed ? "lg:ml-64" : "",
+        !isMobile && sidebarCollapsed ? "lg:ml-20" : "",
       )}>
-        <div className="sticky top-0 z-20 w-full">
+        <div className="sticky top-0 z-30 w-full bg-background">
           <AppHeader>
             {/* Toggle button for sidebar on mobile/desktop */}
             <Button 
@@ -91,6 +91,19 @@ export const AppLayout = () => {
             >
               <Menu size={20} />
               <span className="sr-only">Toggle Sidebar</span>
+            </Button>
+            
+            {/* All Boards button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              asChild 
+              className="mr-2 hidden md:flex items-center"
+            >
+              <Link to="/">
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                All Boards
+              </Link>
             </Button>
           </AppHeader>
         </div>

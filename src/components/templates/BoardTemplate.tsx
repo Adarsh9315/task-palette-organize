@@ -73,15 +73,13 @@ export const BoardTemplate = () => {
     if (!targetColumn) return;
     
     // Update the task's status based on the destination droppableId
-    // We need to ensure the status is properly typed as TaskStatus
     setTasks(prevTasks => 
       prevTasks.map(task => {
         if (task.id === taskId) {
-          // Ensure we're casting the status to TaskStatus
-          const newStatus = targetColumn.status as TaskStatus;
+          // Use type assertion to cast the status to TaskStatus
           return {
             ...task,
-            status: newStatus
+            status: targetColumn.status as TaskStatus
           };
         }
         return task;
@@ -123,11 +121,9 @@ export const BoardTemplate = () => {
       setTasks(prevTasks => 
         prevTasks.map(task => {
           if (task.status === columns.find(c => c.id === columnId)?.status) {
-            // Cast the status to TaskStatus to ensure type safety
-            const newStatus = firstColumn.status as TaskStatus;
             return {
               ...task,
-              status: newStatus
+              status: firstColumn.status as TaskStatus
             };
           }
           return task;
@@ -149,8 +145,8 @@ export const BoardTemplate = () => {
     <div className="h-full flex flex-col bg-background w-full">
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex-1 w-full overflow-hidden">
-          <ScrollArea className="w-full h-full">
-            <div className="flex p-4 gap-6 min-h-[calc(100vh-64px)] overflow-x-auto pb-20">
+          <div className="h-full overflow-x-auto">
+            <div className="flex p-4 gap-6 min-h-[calc(100vh-64px)] pb-20 board-container">
               {columns.map((column, idx) => {
                 const columnTasks = boardTasks.filter(task => task.status === column.status);
                 const taskCount = getTaskCountByStatus(column.status);
@@ -161,7 +157,7 @@ export const BoardTemplate = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: idx * 0.1 }}
-                    className="flex flex-col min-w-[300px] max-w-[300px] h-fit"
+                    className="task-column"
                   >
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center">
@@ -252,7 +248,7 @@ export const BoardTemplate = () => {
               })}
               
               {/* Add new column button */}
-              <div className="flex items-center justify-center min-w-[300px] h-[100px] mt-16">
+              <div className="flex items-center justify-center min-w-[280px] h-[100px] mt-16">
                 <Button 
                   onClick={openAddColumnModal}
                   variant="outline" 
@@ -263,7 +259,7 @@ export const BoardTemplate = () => {
                 </Button>
               </div>
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </DragDropContext>
       
