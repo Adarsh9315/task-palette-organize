@@ -135,7 +135,7 @@ export const useTaskOperations = (boardId: string | undefined) => {
     }
   };
   
-  // New function to delete a task
+  // Fix the deleteTask function
   const deleteTask = async (taskId: string) => {
     try {
       // Delete the task in Supabase
@@ -145,9 +145,11 @@ export const useTaskOperations = (boardId: string | undefined) => {
       setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
       
       toast.success("Task deleted successfully");
+      return true;
     } catch (error: any) {
       console.error("Error deleting task:", error);
       toast.error(error.message || "Failed to delete task");
+      return false;
     }
   };
   

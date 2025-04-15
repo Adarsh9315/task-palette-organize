@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { TaskForm } from "@/components/molecules/TaskForm";
 import { useRecoilState } from "recoil";
 import { editTaskModalState } from "@/recoil/atoms/modalAtom";
@@ -13,6 +13,7 @@ export const EditTaskModal = () => {
   const [modalState, setModalState] = useRecoilState(editTaskModalState);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { deleteTask } = useTaskOperations(modalState.task?.boardId);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const handleClose = () => {
     setModalState({
@@ -23,8 +24,16 @@ export const EditTaskModal = () => {
   
   const handleDelete = async () => {
     if (modalState.task) {
-      await deleteTask(modalState.task.id);
-      handleClose();
+      setIsDeleting(true);
+      try {
+        const success = await deleteTask(modalState.task.id);
+        if (success) {
+          setIsDeleteDialogOpen(false);
+          handleClose();
+        }
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
   
@@ -40,6 +49,7 @@ export const EditTaskModal = () => {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>Make changes to your task or delete it.</DialogDescription>
             <div className="absolute right-8 top-6">
               <Button 
                 variant="destructive" 
@@ -69,9 +79,13 @@ export const EditTaskModal = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
