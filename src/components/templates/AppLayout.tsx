@@ -4,7 +4,7 @@ import { Outlet, useLocation, Link } from "react-router-dom";
 import { Sidebar } from "@/components/organisms/Sidebar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronLeft } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { AppHeader } from "@/components/organisms/AppHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -91,19 +91,6 @@ export const AppLayout = () => {
             >
               <Menu size={20} />
               <span className="sr-only">Toggle Sidebar</span>
-            </Button>
-            
-            {/* All Boards button */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              asChild 
-              className="mr-2 hidden md:flex items-center"
-            >
-              <Link to="/">
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                All Boards
-              </Link>
             </Button>
           </AppHeader>
         </div>
