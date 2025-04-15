@@ -26,11 +26,11 @@ export const EditTaskModal = () => {
     if (modalState.task) {
       setIsDeleting(true);
       try {
-        const success = await deleteTask(modalState.task.id);
-        if (success) {
-          setIsDeleteDialogOpen(false);
-          handleClose();
-        }
+        await deleteTask(modalState.task.id);
+        setIsDeleteDialogOpen(false);
+        handleClose();
+      } catch (error) {
+        console.error("Error deleting task:", error);
       } finally {
         setIsDeleting(false);
       }

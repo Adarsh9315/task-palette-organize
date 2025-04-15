@@ -135,13 +135,19 @@ export const useTaskOperations = (boardId: string | undefined) => {
     }
   };
   
-  // Fix the deleteTask function
   const deleteTask = async (taskId: string) => {
     try {
+      // First find the task to check if it exists
+      const taskToDelete = tasks.find(t => t.id === taskId);
+      if (!taskToDelete) {
+        toast.error("Task not found");
+        return false;
+      }
+      
       // Delete the task in Supabase
       await deleteTaskService(taskId);
       
-      // Update local state
+      // Update local state only after successful deletion
       setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
       
       toast.success("Task deleted successfully");
