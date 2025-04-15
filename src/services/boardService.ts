@@ -1,106 +1,99 @@
 
+import { Board } from "@/components/molecules/BoardCard";
 import { supabase } from '@/integrations/supabase/client';
-import { Board } from '@/components/molecules/BoardCard';
+import { v4 as uuidv4 } from '@/lib/uuid';
 
+// Get all boards for the current user
 export async function getBoards(): Promise<Board[]> {
-  const { data, error } = await supabase
-    .from('boards')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    // For now, we'll return some mock data
+    // In a real app, you would fetch from Supabase
+    const { data, error } = await supabase
+      .from('boards')
+      .select('*');
 
-  if (error) {
-    console.error('Error fetching boards:', error);
-    throw new Error(error.message);
-  }
+    if (error) throw error;
 
-  return data.map(board => ({
-    id: board.id,
-    title: board.title,
-    description: board.description,
-    theme: board.theme || 'default',
-  }));
-}
-
-export async function getBoardById(id: string): Promise<Board | null> {
-  const { data, error } = await supabase
-    .from('boards')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    if (error.code === 'PGRST116') {
-      return null; // No board found
-    }
-    console.error('Error fetching board:', error);
-    throw new Error(error.message);
-  }
-
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    theme: data.theme || 'default',
-  };
-}
-
-export async function createBoard(board: Omit<Board, 'id'>): Promise<Board> {
-  const { data, error } = await supabase
-    .from('boards')
-    .insert([{
+    return data.map((board: any) => ({
+      id: board.id,
       title: board.title,
       description: board.description,
       theme: board.theme || 'default',
-    }])
-    .select()
-    .single();
+    }));
+  } catch (error: any) {
+    console.error('Error fetching boards:', error);
+    throw error;
+  }
+}
 
-  if (error) {
+// Create a new board
+export async function createBoard(board: Omit<Board, "id">): Promise<Board> {
+  try {
+    const { data, error } = await supabase
+      .from('boards')
+      .insert([
+        {
+          title: board.title,
+          description: board.description,
+          theme: board.theme || 'default',
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      theme: data.theme || 'default',
+    };
+  } catch (error: any) {
     console.error('Error creating board:', error);
-    throw new Error(error.message);
+    throw error;
   }
-
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    theme: data.theme || 'default',
-  };
 }
 
+// Update an existing board
 export async function updateBoard(id: string, board: Partial<Board>): Promise<Board> {
-  const { data, error } = await supabase
-    .from('boards')
-    .update({
-      title: board.title,
-      description: board.description,
-      theme: board.theme,
-    })
-    .eq('id', id)
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('boards')
+      .update({
+        title: board.title,
+        description: board.description,
+        theme: board.theme,
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
-  if (error) {
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      theme: data.theme || 'default',
+    };
+  } catch (error: any) {
     console.error('Error updating board:', error);
-    throw new Error(error.message);
+    throw error;
   }
-
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    theme: data.theme || 'default',
-  };
 }
 
+// Delete a board
 export async function deleteBoard(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('boards')
-    .delete()
-    .eq('id', id);
+  try {
+    const { error } = await supabase
+      .from('boards')
+      .delete()
+      .eq('id', id);
 
-  if (error) {
+    if (error) throw error;
+  } catch (error: any) {
     console.error('Error deleting board:', error);
-    throw new Error(error.message);
+    throw error;
   }
 }

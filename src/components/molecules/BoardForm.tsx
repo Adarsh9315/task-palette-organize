@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,8 +58,12 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
       setIsSubmitting(true);
       
       if (existingBoard) {
-        // Update existing board
-        const updatedBoard = await updateBoard(existingBoard.id, values);
+        // Update existing board - ensure all required fields are present
+        const updatedBoard = await updateBoard(existingBoard.id, {
+          title: values.title,
+          description: values.description,
+          theme: values.theme
+        });
         
         // Update Recoil state
         setBoards(boards.map((board) => 
@@ -71,8 +74,12 @@ export const BoardForm = ({ existingBoard }: BoardFormProps) => {
         
         toast.success("Board updated successfully!");
       } else {
-        // Create new board
-        const newBoard = await createBoard(values);
+        // Create new board - ensure all required fields are present
+        const newBoard = await createBoard({
+          title: values.title,
+          description: values.description,
+          theme: values.theme
+        });
         
         // Update Recoil state
         setBoards([...boards, newBoard]);
