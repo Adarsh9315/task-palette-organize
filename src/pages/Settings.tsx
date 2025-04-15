@@ -1,4 +1,5 @@
 
+import { UserProfile } from "@/components/molecules/UserProfile";
 import { SettingsTemplate } from "@/components/templates/SettingsTemplate";
 
 const Settings = () => {

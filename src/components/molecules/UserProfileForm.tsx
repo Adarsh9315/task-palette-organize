@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { LogOut, Loader } from "lucide-react";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, {
@@ -22,43 +25,133 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
+type Profile = {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
 export function UserProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const { user, signOut } = useAuth();
   
-  const defaultValues: Partial<ProfileFormValues> = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    bio: "Task management enthusiast and productivity geek.",
-  };
-
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: {
+      name: "",
+      email: user?.email || "",
+      bio: "",
+    },
     mode: "onChange",
   });
 
-  function onSubmit(data: ProfileFormValues) {
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        setProfile(data);
+        form.reset({
+          name: data.full_name || "",
+          email: user.email || "",
+          bio: data.bio || "",
+        });
+      } catch (error: any) {
+        console.error("Error fetching profile:", error);
+        toast.error("Failed to load profile");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProfile();
+  }, [user, form]);
+
+  async function onSubmit(data: ProfileFormValues) {
+    if (!user) return;
+    
     setIsLoading(true);
     
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: data.name,
+          bio: data.bio,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+      
       toast.success("Profile updated successfully!");
-    }, 1000);
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast.error(error.message || "Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to log out");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Loader className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Profile</h3>
-        <p className="text-sm text-muted-foreground">
-          This is how others will see you on the platform.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Profile</h3>
+          <p className="text-sm text-muted-foreground">
+            This is how others will see you on the platform.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleLogout} className="flex gap-2">
+          <LogOut size={16} />
+          Logout
+        </Button>
       </div>
       
       <div className="flex items-center space-x-4">
         <Avatar className="h-16 w-16">
-          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>JD</AvatarFallback>
+          {profile?.avatar_url ? (
+            <AvatarImage src={profile.avatar_url} alt={profile.full_name || ""} />
+          ) : (
+            <AvatarFallback>
+              {profile?.full_name ? getInitials(profile.full_name) : user?.email?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          )}
         </Avatar>
         <Button size="sm">Change Avatar</Button>
       </div>
@@ -86,8 +179,11 @@ export function UserProfileForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="Your email" {...field} />
+                  <Input type="email" placeholder="Your email" {...field} disabled />
                 </FormControl>
+                <FormDescription>
+                  Your email address cannot be changed.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -115,7 +211,14 @@ export function UserProfileForm() {
           />
           
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update profile"}
+            {isLoading ? (
+              <>
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              "Update profile"
+            )}
           </Button>
         </form>
       </Form>
