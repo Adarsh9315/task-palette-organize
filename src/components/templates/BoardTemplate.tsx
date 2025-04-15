@@ -1,9 +1,9 @@
 
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Settings, MoreVertical } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { boardByIdSelector } from "@/recoil/selectors/boardSelectors";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { tasksState } from "@/recoil/atoms/tasksAtom";
@@ -13,8 +13,17 @@ import { filteredTasksSelector } from "@/recoil/selectors/taskSelectors";
 import { createTaskModalState } from "@/recoil/atoms/modalAtom";
 import { CreateTaskModal } from "@/components/organisms/CreateTaskModal";
 import { EditTaskModal } from "@/components/organisms/EditTaskModal";
+import { ColumnModal } from "@/components/organisms/ColumnModal";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { columnsState, Column } from "@/recoil/atoms/columnsAtom";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const BoardTemplate = () => {
   const { boardId } = useParams<{ boardId: string }>();
@@ -23,6 +32,11 @@ export const BoardTemplate = () => {
   const board = useRecoilValue(boardByIdSelector(boardId || ""));
   const boardTasks = useRecoilValue(filteredTasksSelector(boardId || ""));
   const setCreateModal = useRecoilState(createTaskModalState)[1];
+  const [columns, setColumns] = useRecoilState(columnsState);
+  
+  // Column modal state
+  const [columnModalOpen, setColumnModalOpen] = useState(false);
+  const [selectedColumn, setSelectedColumn] = useState<Column | undefined>(undefined);
   
   if (!board || !boardId) {
     return (
@@ -62,6 +76,8 @@ export const BoardTemplate = () => {
         return task;
       })
     );
+    
+    toast.success("Task moved successfully");
   };
   
   const openCreateTaskModal = (status: string) => {
@@ -72,29 +88,28 @@ export const BoardTemplate = () => {
     });
   };
   
-  const columns = [
-    { id: "todo", title: "TODO", color: "bg-[#00A3FF]", textColor: "text-[#00A3FF]" },
-    { id: "in-progress", title: "DOING", color: "bg-primary", textColor: "text-primary" },
-    { id: "done", title: "DONE", color: "bg-[#00CA92]", textColor: "text-[#00CA92]" }
-  ];
+  const openAddColumnModal = () => {
+    setSelectedColumn(undefined);
+    setColumnModalOpen(true);
+  };
+  
+  const openEditColumnModal = (column: Column) => {
+    setSelectedColumn(column);
+    setColumnModalOpen(true);
+  };
   
   // Get number of tasks per status
-  const todoCount = boardTasks.filter(task => task.status === "todo").length;
-  const inProgressCount = boardTasks.filter(task => task.status === "in-progress").length;
-  const doneCount = boardTasks.filter(task => task.status === "done").length;
-  
-  const counts = {
-    "todo": todoCount,
-    "in-progress": inProgressCount,
-    "done": doneCount
+  const getTaskCountByStatus = (status: string) => {
+    return boardTasks.filter(task => task.status === status).length;
   };
   
   return (
     <div className="min-h-full p-4 bg-[#1A1F2C]">
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 overflow-x-auto">
+        <div className="flex overflow-x-auto pb-6 gap-6">
           {columns.map((column, idx) => {
-            const columnTasks = boardTasks.filter(task => task.status === column.id);
+            const columnTasks = boardTasks.filter(task => task.status === column.status);
+            const taskCount = getTaskCountByStatus(column.status);
             
             return (
               <motion.div 
@@ -102,21 +117,47 @@ export const BoardTemplate = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: idx * 0.1 }}
-                className="flex flex-col h-full"
+                className="flex flex-col h-full min-w-[300px] max-w-[300px]"
               >
-                <div className="flex items-center mb-6">
-                  <div className={`h-3 w-3 rounded-full ${column.color} mr-3`}></div>
-                  <span className="font-bold text-gray-400 tracking-wider text-sm">{column.title}</span>
-                  <span className="ml-2 text-gray-400 text-sm">({counts[column.id as keyof typeof counts]})</span>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center">
+                    <div className={cn("h-3 w-3 rounded-full", column.color)} />
+                    <span className="font-bold text-gray-400 tracking-wider text-sm ml-3">
+                      {column.title}
+                    </span>
+                    <span className="ml-2 text-gray-400 text-sm">({taskCount})</span>
+                  </div>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4 text-gray-400" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-[#2B2C37] border-gray-700 text-white">
+                      <DropdownMenuItem 
+                        onClick={() => openEditColumnModal(column)}
+                        className="cursor-pointer hover:bg-gray-700"
+                      >
+                        Edit Column
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => openCreateTaskModal(column.status)}
+                        className="cursor-pointer hover:bg-gray-700"
+                      >
+                        Add Task
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                   
-                <Droppable droppableId={column.id}>
+                <Droppable droppableId={column.status}>
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={cn(
-                        "flex-1 min-h-[200px] transition-colors duration-200",
+                        "flex-1 min-h-[calc(100vh-240px)] transition-colors duration-200 rounded-lg p-2",
                         snapshot.isDraggingOver ? 'bg-gray-800/20' : ''
                       )}
                     >
@@ -147,24 +188,40 @@ export const BoardTemplate = () => {
                     </div>
                   )}
                 </Droppable>
+                
+                <Button
+                  onClick={() => openCreateTaskModal(column.status)}
+                  variant="outline"
+                  className="mt-3 w-full border-dashed border-gray-700 bg-transparent hover:bg-gray-800/50 text-gray-400"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Task
+                </Button>
               </motion.div>
             );
           })}
+          
+          {/* Add new column button */}
+          <div className="flex items-center justify-center min-w-[300px] h-[100px] mt-16">
+            <Button 
+              onClick={openAddColumnModal}
+              variant="outline" 
+              className="border-dashed border-gray-700 hover:border-primary bg-transparent hover:bg-gray-800/50 px-8 py-6"
+            >
+              <Plus className="h-5 w-5 mr-2 text-primary" />
+              Add New Column
+            </Button>
+          </div>
         </div>
       </DragDropContext>
       
-      <div className="fixed bottom-6 right-6">
-        <Button 
-          onClick={() => openCreateTaskModal("todo")} 
-          className="rounded-full bg-primary hover:bg-primary/90"
-        >
-          <Plus className="mr-2" />
-          New Column
-        </Button>
-      </div>
-        
       <CreateTaskModal />
       <EditTaskModal />
+      <ColumnModal 
+        isOpen={columnModalOpen}
+        onClose={() => setColumnModalOpen(false)}
+        column={selectedColumn}
+      />
     </div>
   );
 };

@@ -105,7 +105,7 @@
     --primary-foreground: 210 40% 98%;
   }
 
-  [data-color-scheme="orange"] {
+  [data-color-scheme="amber"] {
     --primary: 24.6 95% 53.1%;
     --primary-foreground: 210 40% 98%;
   }
@@ -117,8 +117,13 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground dark:bg-[#1A1F2C] dark:text-white;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Force dark mode */
+  .dark {
+    color-scheme: dark;
   }
 }
 
@@ -153,6 +158,27 @@
   
   .task-card {
     @apply bg-card border border-border rounded-md p-4 mb-4 hover:shadow-md transition-shadow;
+  }
+  
+  /* Custom scrollbar for dark mode */
+  .dark ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    border: 2px solid transparent;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3);
   }
 }
 
